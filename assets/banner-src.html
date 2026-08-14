@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agy-plugins Banner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07080d;
+      --card-bg: rgba(18, 22, 34, 0.95);
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      width: 1600px;
+      height: 480px;
+      margin: 0 auto;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4rem;
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      position: relative;
+    }
+
+    /* Ambient Glows */
+    .ambient-bg-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 850px;
+      height: 450px;
+      background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.18) 0%, rgba(168, 85, 247, 0.08) 40%, rgba(6, 182, 212, 0.04) 65%, transparent 80%);
+      pointer-events: none;
+      filter: blur(60px);
+    }
+
+    /* Hero Lockup Container */
+    .hero-container {
+      display: flex;
+      align-items: center;
+      gap: 3.5rem;
+      max-width: 1300px;
+      width: 100%;
+      z-index: 10;
+    }
+
+    /* Direct SVG Icon Container (No double borders or nested frames) */
+    .icon-wrapper {
+      width: 156px;
+      height: 156px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 20px rgba(168, 85, 247, 0.25));
+    }
+
+    .icon-wrapper svg {
+      width: 156px;
+      height: 156px;
+      display: block;
+    }
+
+    /* Typography & Content Block */
+    .content-block {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      flex: 1;
+    }
+
+    .top-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .badge-native {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-fledgeling {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #c084fc;
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+    }
+
+    /* Wordmark with Unclipped Descenders */
+    .wordmark-row {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      overflow: visible;
+    }
+
+    .wordmark {
+      font-size: 4.2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      padding-bottom: 0.2rem;
+      background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      overflow: visible;
+      display: inline-block;
+    }
+
+    .tagline {
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      letter-spacing: -0.015em;
+      max-width: 900px;
+    }
+
+    /* Telemetry Badges */
+    .pill-telemetry-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-top: 0.35rem;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+    }
+
+    .telem-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      padding: 0.45rem 0.95rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #e2e8f0;
+    }
+
+    .dot-live {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg-center"></div>
+
+  <div class="hero-container">
+    <!-- Clean Master Vector Icon without double container frames -->
+    <div class="icon-wrapper">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="156" height="156" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <clipPath id="macSuperellipseBanner">
+            <path d="M 512 0 C 138 0 0 138 0 512 C 0 886 138 1024 512 1024 C 886 1024 1024 886 1024 512 C 1024 138 886 0 512 0 Z" />
+          </clipPath>
+          <linearGradient id="bgGradBanner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#181b2a"/>
+            <stop offset="45%" stop-color="#0e101a"/>
+            <stop offset="100%" stop-color="#07080d"/>
+          </linearGradient>
+          <radialGradient id="ambientGlowBanner" cx="50%" cy="28%" r="75%">
+            <stop offset="0%" stop-color="#6366f1" stop-opacity="0.45"/>
+            <stop offset="50%" stop-color="#a855f7" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="prismEdgeBanner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="30%" stop-color="#818cf8"/>
+            <stop offset="70%" stop-color="#c084fc"/>
+            <stop offset="100%" stop-color="#f43f5e"/>
+          </linearGradient>
+          <linearGradient id="crystalTopBanner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+            <stop offset="50%" stop-color="#818cf8" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#312e81" stop-opacity="0.95"/>
+          </linearGradient>
+          <linearGradient id="crystalRightBanner" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
+            <stop offset="50%" stop-color="#6366f1" stop-opacity="0.65"/>
+            <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0.95"/>
+          </linearGradient>
+          <linearGradient id="crystalBottomBanner" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ec4899" stop-opacity="0.9"/>
+            <stop offset="50%" stop-color="#a855f7" stop-opacity="0.7"/>
+            <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.5"/>
+          </linearGradient>
+          <linearGradient id="emberPipBanner" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f59e0b"/>
+            <stop offset="100%" stop-color="#ea580c"/>
+          </linearGradient>
+        </defs>
+        <g clip-path="url(#macSuperellipseBanner)">
+          <rect width="1024" height="1024" fill="url(#bgGradBanner)"/>
+          <rect width="1024" height="1024" fill="url(#ambientGlowBanner)"/>
+          <g stroke="rgba(255, 255, 255, 0.05)" stroke-width="2" fill="none">
+            <circle cx="512" cy="512" r="400" stroke-dasharray="8, 12"/>
+            <circle cx="512" cy="512" r="275" stroke-dasharray="6, 8"/>
+          </g>
+          <ellipse cx="512" cy="770" rx="290" ry="72" fill="#000000" opacity="0.75"/>
+          <g>
+            <polygon points="512,186 800,354 800,670 512,838 224,670 224,354" fill="none" stroke="url(#prismEdgeBanner)" stroke-width="6" opacity="0.75"/>
+            <polygon points="512,206 512,512 244,370" fill="url(#crystalTopBanner)"/>
+            <polygon points="512,206 780,370 512,512" fill="url(#crystalRightBanner)"/>
+            <polygon points="244,370 512,512 512,818 244,654" fill="url(#crystalBottomBanner)"/>
+            <polygon points="512,512 780,370 780,654 512,818" fill="url(#crystalTopBanner)" opacity="0.9"/>
+            <path d="M 512 342 Q 512 512 346 512 Q 512 512 512 682 Q 512 512 678 512 Q 512 512 512 342 Z" fill="#ffffff" opacity="0.95"/>
+            <circle cx="512" cy="512" r="32" fill="url(#emberPipBanner)" stroke="#ffffff" stroke-width="4.5"/>
+            <line x1="512" y1="206" x2="512" y2="512" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" opacity="0.9"/>
+            <line x1="512" y1="512" x2="244" y2="370" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
+            <line x1="512" y1="512" x2="780" y2="370" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
+            <line x1="512" y1="512" x2="512" y2="818" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.7"/>
+          </g>
+          <path d="M 512 0 C 138 0 0 138 0 512 C 0 886 138 1024 512 1024 C 886 1024 1024 886 1024 512 C 1024 138 886 0 512 0 Z" fill="none" stroke="rgba(255, 255, 255, 0.22)" stroke-width="3.5"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Content Lockup -->
+    <div class="content-block">
+      <div class="top-meta-row">
+        <span class="badge-native">ANTIGRAVITY CLI NATIVE</span>
+        <span class="badge-fledgeling">FLEDGELING CO</span>
+      </div>
+
+      <div class="wordmark-row">
+        <h1 class="wordmark">agy-plugins</h1>
+      </div>
+
+      <p class="tagline">One place to discover, install, and auto-update your Antigravity skills.</p>
+
+      <div class="pill-telemetry-row">
+        <div class="telem-pill">
+          <div class="dot-live"></div>
+          <span>Instant Auto-Sync</span>
+        </div>
+        <div class="telem-pill">
+          <span>0 npm dependencies</span>
+        </div>
+        <div class="telem-pill">
+          <span>AgentSkills.io Spec</span>
+        </div>
+        <div class="telem-pill">
+          <span>Stdio MCP Server</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

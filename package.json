@@ -1,0 +1,34 @@
+{
+  "name": "agy-plugins",
+  "version": "1.0.0",
+  "description": "Native Plugin & Marketplace Manager for Antigravity CLI (AGY)",
+  "type": "module",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "agy-plugins": "bin/agy-plugins.js",
+    "agy-plugin": "bin/agy-plugins.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node bin/agy-plugins.js",
+    "tui": "node bin/agy-plugins.js tui",
+    "mcp": "node bin/agy-plugins.js mcp",
+    "doctor": "node bin/agy-plugins.js doctor"
+  },
+  "keywords": [
+    "antigravity",
+    "agy",
+    "gemini",
+    "plugins",
+    "skills",
+    "marketplace",
+    "tui",
+    "mcp"
+  ],
+  "author": "Luke Rhodes",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}

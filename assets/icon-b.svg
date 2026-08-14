@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <clipPath id="macSuperellipseB">
+      <path d="M 512 0 C 138 0 0 138 0 512 C 0 886 138 1024 512 1024 C 886 1024 1024 886 1024 512 C 1024 138 886 0 512 0 Z" />
+    </clipPath>
+
+    <!-- Porcelain Daylight Palette -->
+    <linearGradient id="bgGradB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="60%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+
+    <radialGradient id="sunGlowB" cx="30%" cy="20%" r="70%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Mechanical Anodized Titanium Rings -->
+    <linearGradient id="titaniumRingB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="bladeGradB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+
+    <linearGradient id="emberCenterB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+
+    <filter id="shadowB" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="30" flood-color="#0f172a" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <g clip-path="url(#macSuperellipseB)">
+    <!-- Base Plate -->
+    <rect width="1024" height="1024" fill="url(#bgGradB)"/>
+    <rect width="1024" height="1024" fill="url(#sunGlowB)"/>
+
+    <!-- Concentric Precision Gauge Lines -->
+    <g stroke="rgba(15, 23, 42, 0.12)" stroke-width="2" fill="none">
+      <circle cx="512" cy="512" r="410"/>
+      <circle cx="512" cy="512" r="330" stroke-dasharray="8, 12"/>
+      <circle cx="512" cy="512" r="230"/>
+      <line x1="102" y1="512" x2="922" y2="512"/>
+      <line x1="512" y1="102" x2="512" y2="922"/>
+    </g>
+
+    <!-- Outer Titanium Aperture Bezel -->
+    <g filter="url(#shadowB)">
+      <circle cx="512" cy="512" r="310" fill="url(#titaniumRingB)" stroke="#ffffff" stroke-width="4"/>
+      
+      <!-- Precision Calibration Tick Marks -->
+      <g stroke="#94a3b8" stroke-width="3">
+        <line x1="512" y1="212" x2="512" y2="232"/>
+        <line x1="512" y1="792" x2="512" y2="812"/>
+        <line x1="212" y1="512" x2="232" y2="512"/>
+        <line x1="792" y1="512" x2="812" y2="512"/>
+        <line x1="300" y1="300" x2="315" y2="315"/>
+        <line x1="724" y1="300" x2="709" y2="315"/>
+        <line x1="300" y1="724" x2="315" y2="709"/>
+        <line x1="724" y1="724" x2="709" y2="709"/>
+      </g>
+
+      <!-- Sparse Iris Aperture Cone Blades -->
+      <g opacity="0.95">
+        <path d="M 512 280 L 670 410 L 580 580 Z" fill="url(#bladeGradB)" opacity="0.9"/>
+        <path d="M 670 410 L 670 610 L 500 630 Z" fill="url(#bladeGradB)" opacity="0.8"/>
+        <path d="M 670 610 L 512 740 L 420 580 Z" fill="url(#bladeGradB)" opacity="0.9"/>
+        <path d="M 512 740 L 354 610 L 440 440 Z" fill="url(#bladeGradB)" opacity="0.8"/>
+        <path d="M 354 610 L 354 410 L 520 390 Z" fill="url(#bladeGradB)" opacity="0.9"/>
+        <path d="M 354 410 L 512 280 L 600 440 Z" fill="url(#bladeGradB)" opacity="0.8"/>
+      </g>
+
+      <!-- Central Aperture Chamber (Ember Spark Core) -->
+      <circle cx="512" cy="512" r="64" fill="#0f172a" stroke="#38bdf8" stroke-width="4"/>
+      <circle cx="512" cy="512" r="32" fill="url(#emberCenterB)"/>
+      <circle cx="504" cy="504" r="8" fill="#ffffff" opacity="0.8"/>
+    </g>
+
+    <!-- Bevel Rim Reflection -->
+    <path d="M 512 0 C 138 0 0 138 0 512 C 0 886 138 1024 512 1024 C 886 1024 1024 886 1024 512 C 1024 138 886 0 512 0 Z" fill="none" stroke="rgba(255, 255, 255, 0.8)" stroke-width="3"/>
+  </g>
+</svg>

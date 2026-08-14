@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <clipPath id="macSuperellipseMaster">
+      <path d="M 512 0 C 138 0 0 138 0 512 C 0 886 138 1024 512 1024 C 886 1024 1024 886 1024 512 C 1024 138 886 0 512 0 Z" />
+    </clipPath>
+
+    <linearGradient id="bgGradMaster" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181b2a"/>
+      <stop offset="45%" stop-color="#0e101a"/>
+      <stop offset="100%" stop-color="#07080d"/>
+    </linearGradient>
+
+    <radialGradient id="ambientGlowMaster" cx="50%" cy="28%" r="75%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.45"/>
+      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="prismEdgeMaster" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="30%" stop-color="#818cf8"/>
+      <stop offset="70%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#f43f5e"/>
+    </linearGradient>
+
+    <linearGradient id="crystalTopMaster" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="50%" stop-color="#818cf8" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#312e81" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <linearGradient id="crystalRightMaster" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <linearGradient id="crystalBottomMaster" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.5"/>
+    </linearGradient>
+
+    <linearGradient id="emberPipMaster" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+
+    <filter id="shadowMaster" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="28" stdDeviation="36" flood-color="#000000" flood-opacity="0.85"/>
+    </filter>
+
+    <filter id="coreGlowMaster" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <g clip-path="url(#macSuperellipseMaster)">
+    <!-- Base canvas -->
+    <rect width="1024" height="1024" fill="url(#bgGradMaster)"/>
+    <rect width="1024" height="1024" fill="url(#ambientGlowMaster)"/>
+
+    <!-- Concentric Precision Geometry Guides -->
+    <g stroke="rgba(255, 255, 255, 0.05)" stroke-width="2" fill="none">
+      <circle cx="512" cy="512" r="400" stroke-dasharray="8, 12"/>
+      <circle cx="512" cy="512" r="275" stroke-dasharray="6, 8"/>
+      <line x1="112" y1="512" x2="912" y2="512" stroke-dasharray="8, 12"/>
+      <line x1="512" y1="112" x2="512" y2="912" stroke-dasharray="8, 12"/>
+    </g>
+
+    <!-- Balanced Contact Shadow -->
+    <ellipse cx="512" cy="770" rx="290" ry="72" fill="#000000" opacity="0.75" filter="url(#shadowMaster)"/>
+
+    <!-- Halfway Golden Proportion Volumetric Prism Assembly -->
+    <g filter="url(#shadowMaster)">
+      <!-- Outer Edge Halo (576px width x 652px height) -->
+      <polygon points="512,186 800,354 800,670 512,838 224,670 224,354" fill="none" stroke="url(#prismEdgeMaster)" stroke-width="6" opacity="0.75"/>
+
+      <!-- Facet 1: Top-Left -->
+      <polygon points="512,206 512,512 244,370" fill="url(#crystalTopMaster)"/>
+      <!-- Facet 2: Top-Right -->
+      <polygon points="512,206 780,370 512,512" fill="url(#crystalRightMaster)"/>
+      <!-- Facet 3: Bottom-Left -->
+      <polygon points="244,370 512,512 512,818 244,654" fill="url(#crystalBottomMaster)"/>
+      <!-- Facet 4: Bottom-Right -->
+      <polygon points="512,512 780,370 780,654 512,818" fill="url(#crystalTopMaster)" opacity="0.9"/>
+
+      <!-- Balanced Spark Core -->
+      <g filter="url(#coreGlowMaster)">
+        <path d="M 512 342 Q 512 512 346 512 Q 512 512 512 682 Q 512 512 678 512 Q 512 512 512 342 Z" fill="#ffffff" opacity="0.95"/>
+        <circle cx="512" cy="512" r="32" fill="url(#emberPipMaster)" stroke="#ffffff" stroke-width="4.5"/>
+      </g>
+
+      <!-- Specular Bevel Ridges -->
+      <line x1="512" y1="206" x2="512" y2="512" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" opacity="0.9"/>
+      <line x1="512" y1="512" x2="244" y2="370" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
+      <line x1="512" y1="512" x2="780" y2="370" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
+      <line x1="512" y1="512" x2="512" y2="818" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.7"/>
+    </g>
+
+    <!-- Top-Down Tahoe Glass Glare Bevel -->
+    <path d="M 512 0 C 138 0 0 138 0 512 C 0 886 138 1024 512 1024 C 886 1024 1024 886 1024 512 C 1024 138 886 0 512 0 Z" fill="none" stroke="rgba(255, 255, 255, 0.22)" stroke-width="3.5"/>
+  </g>
+</svg>

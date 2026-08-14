@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity Plugins — Gemini Native TUI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-chassis: #08090e;
+      --bg-terminal: #0f111a;
+      --bg-card: #151824;
+      --bg-card-hover: #1c2030;
+      --bg-card-active: #20253b;
+      --bg-inspector: #111420;
+      
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-medium: rgba(255, 255, 255, 0.12);
+      --border-focus: #818cf8;
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-dim: #475569;
+      
+      /* Gemini signature prism gradient palette */
+      --gemini-blue: #4285f4;
+      --gemini-purple: #a855f7;
+      --gemini-pink: #ec4899;
+      --gemini-cyan: #06b6d4;
+      --gemini-emerald: #10b981;
+      --gemini-amber: #f59e0b;
+      --gemini-rose: #f43f5e;
+      
+      --prism-gradient: linear-gradient(135deg, #4285f4 0%, #a855f7 50%, #ec4899 100%);
+      --prism-subtle: linear-gradient(135deg, rgba(66,133,244,0.15) 0%, rgba(168,85,247,0.15) 100%);
+      --prism-border: linear-gradient(135deg, rgba(66,133,244,0.4) 0%, rgba(168,85,247,0.4) 100%);
+      
+      --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-chassis);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.75rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top branding header */
+    .top-header {
+      width: 100%;
+      max-width: 1140px;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .gemini-spark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .gemini-spark svg {
+      width: 28px;
+      height: 28px;
+      display: block;
+    }
+
+    .brand-group h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-group .version-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--gemini-cyan);
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+    }
+
+    .quick-metrics {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .metric-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .metric-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gemini-emerald);
+      box-shadow: 0 0 8px var(--gemini-emerald);
+    }
+
+    /* Terminal frame */
+    .terminal-frame {
+      width: 100%;
+      max-width: 1140px;
+      height: 680px;
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Chrome Titlebar */
+    .chrome-bar {
+      background: #12141e;
+      padding: 0.65rem 1rem;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      user-select: none;
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 7px;
+    }
+    .w-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .w-dot.close { background: #ff5f56; }
+    .w-dot.min { background: #ffbd2e; }
+    .w-dot.max { background: #27c93f; }
+
+    .window-title {
+      flex: 1;
+      text-align: center;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Navigation Mode Header */
+    .nav-ribbon {
+      background: rgba(18, 20, 30, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      user-select: none;
+    }
+
+    .nav-modes {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .mode-tab {
+      padding: 0.3rem 0.85rem;
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.15s ease;
+    }
+
+    .mode-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .mode-tab.active {
+      background: var(--prism-subtle);
+      color: #fff;
+      font-weight: 600;
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+    }
+
+    .mode-tab .key-hint {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.3);
+      padding: 0.05rem 0.35rem;
+      border-radius: 3px;
+    }
+
+    .search-filter-input {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.35rem 0.75rem 0.35rem 1.85rem;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      width: 280px;
+      outline: none;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .search-filter-input:focus {
+      border-color: var(--gemini-purple);
+      box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+      width: 320px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-glyph {
+      position: absolute;
+      left: 0.6rem;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      pointer-events: none;
+    }
+
+    /* Dual-Pane Layout */
+    .master-detail-workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      overflow: hidden;
+    }
+
+    /* Left Master List */
+    .master-pane {
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      background: var(--bg-terminal);
+    }
+
+    .pane-section-header {
+      padding: 0.75rem 1.25rem 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .skill-card-row {
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      transition: all 0.12s ease;
+      position: relative;
+      user-select: none;
+    }
+
+    .skill-card-row:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .skill-card-row.selected {
+      background: var(--bg-card-active);
+      box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.4);
+    }
+
+    .row-top-line {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .status-spark {
+      font-size: 0.82rem;
+      line-height: 1;
+    }
+    .status-spark.installed { color: var(--gemini-emerald); }
+    .status-spark.available { color: var(--text-dim); }
+
+    .skill-title {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .skill-title.installed {
+      color: #fff;
+    }
+
+    .type-pill {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .type-pill.agent {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--gemini-purple);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .type-pill.mcp {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--gemini-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .type-pill.rule {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--gemini-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .type-pill.workflow {
+      background: rgba(66, 133, 244, 0.15);
+      color: var(--gemini-blue);
+      border: 1px solid rgba(66, 133, 244, 0.3);
+    }
+
+    .mp-source-tag {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .row-summary {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.35;
+      padding-left: 1.4rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .row-meta-bar {
+      padding-left: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    /* Right Inspector Pane */
+    .inspector-pane {
+      background: var(--bg-inspector);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 1.5rem;
+      gap: 1.25rem;
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    .inspector-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 1rem;
+    }
+
+    .insp-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .insp-name {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .insp-version {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--gemini-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+    }
+
+    .insp-origin {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .insp-actions-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.4rem;
+    }
+
+    .btn-insp {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.45rem 0.95rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.15s ease;
+      user-select: none;
+      border: 1px solid transparent;
+    }
+
+    .btn-insp.primary-install {
+      background: var(--prism-gradient);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+    }
+
+    .btn-insp.primary-install:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-insp.secondary {
+      background: var(--bg-card);
+      border-color: var(--border-medium);
+      color: var(--text-primary);
+    }
+
+    .btn-insp.secondary:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .btn-insp.danger {
+      background: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: var(--gemini-rose);
+    }
+
+    /* Technical Capability Matrix */
+    .capability-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+
+    .cap-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .cap-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .cap-value {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* Trigger Phrase box */
+    .trigger-container {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .trigger-header {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--gemini-purple);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .trigger-body {
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      line-height: 1.45;
+      font-style: italic;
+    }
+
+    /* Sparse-Checkout Ingestion Path */
+    .path-box {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.65rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      word-break: break-all;
+    }
+
+    .path-box span.highlight {
+      color: var(--gemini-cyan);
+    }
+
+    /* Marketplaces Mode View (Cards Grid) */
+    .marketplaces-pane {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    .mp-hero-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mp-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .mp-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1.15rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .mp-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-medium);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .mp-card.active-mp {
+      border-color: rgba(168, 85, 247, 0.4);
+      background: linear-gradient(180deg, rgba(168, 85, 247, 0.08) 0%, var(--bg-card) 100%);
+    }
+
+    .mp-card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mp-card-name {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .mp-card-repo {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .mp-card-stats {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    .mp-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+
+    .sync-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--gemini-emerald);
+    }
+
+    /* Diagnostics Mode */
+    .diagnostics-pane {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    .diag-item {
+      background: var(--bg-card);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .diag-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--gemini-rose);
+    }
+
+    .diag-msg {
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      line-height: 1.4;
+      padding-left: 1.45rem;
+    }
+
+    .diag-actions {
+      padding-left: 1.45rem;
+      margin-top: 0.4rem;
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    /* Terminal Footer bar */
+    .terminal-footer {
+      background: #10121c;
+      border-top: 1px solid var(--border-subtle);
+      padding: 0.6rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .footer-hotkeys {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-hotkey-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .key-badge {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--gemini-cyan);
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .footer-engine-state {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    /* Toast Notification */
+    .toast-pill {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
+      border: 1px solid var(--gemini-purple);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 100;
+      animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .toast-pill.show { display: flex; }
+
+    @keyframes slideIn {
+      from { transform: translateY(-12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Bar -->
+  <div class="top-header">
+    <div class="brand-group">
+      <div class="gemini-spark">
+        <svg viewBox="0 0 1024 1024" width="28" height="28">
+          <g>
+            <rect width="1024" height="1024" fill="#0f111a"/>
+            <polygon points="512,170 780,360 780,680 512,870 244,680 244,360" fill="none" stroke="#38bdf8" stroke-width="24"/>
+            <polygon points="512,190 512,520 264,380" fill="#818cf8"/>
+            <polygon points="512,190 760,380 512,520" fill="#38bdf8"/>
+            <polygon points="264,380 512,520 512,850 264,700" fill="#ec4899"/>
+            <polygon points="512,520 760,380 760,700 512,850" fill="#a855f7"/>
+            <circle cx="512" cy="520" r="48" fill="#f59e0b" stroke="#ffffff" stroke-width="12"/>
+          </g>
+        </svg>
+      </div>
+      <h1>Antigravity Customization Studio</h1>
+      <span class="version-tag">GEMINI / AGY NATIVE</span>
+    </div>
+    <div class="quick-metrics">
+      <div class="metric-pill">
+        <div class="metric-dot"></div>
+        <span>Sparse Cone: <b>Active</b></span>
+      </div>
+      <div class="metric-pill">
+        <span>Active Daemon: <b>60fps IPC</b></span>
+      </div>
+      <div class="metric-pill">
+        <span>Installed: <b id="installed-counter-top">3 Skills</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Terminal Window Frame -->
+  <div class="terminal-frame">
+    
+    <!-- Chrome Titlebar -->
+    <div class="chrome-bar">
+      <div class="window-controls">
+        <div class="w-dot close"></div>
+        <div class="w-dot min"></div>
+        <div class="w-dot max"></div>
+      </div>
+      <div class="window-title">agy-plugins · AgentSkills.io Sparse Engine · ~/.gemini/config/plugins</div>
+    </div>
+
+    <!-- Navigation Ribbon -->
+    <div class="nav-ribbon">
+      <div class="nav-modes">
+        <div class="mode-tab active" data-view="catalog" onclick="switchView('catalog')">
+          <span>✦ Explore & Skills</span>
+          <span class="key-hint">1</span>
+        </div>
+        <div class="mode-tab" data-view="marketplaces" onclick="switchView('marketplaces')">
+          <span>⛃ Marketplaces</span>
+          <span class="key-hint">2</span>
+        </div>
+        <div class="mode-tab" data-view="installed" onclick="switchView('installed')">
+          <span>✓ Installed</span>
+          <span class="key-hint">3</span>
+        </div>
+        <div class="mode-tab" data-view="diagnostics" onclick="switchView('diagnostics')">
+          <span>⚠ Doctor</span>
+          <span class="key-hint">4</span>
+        </div>
+      </div>
+
+      <div class="search-wrapper">
+        <span class="search-glyph">⌕</span>
+        <input type="text" id="fuzzy-search" class="search-filter-input" placeholder="Fuzzy search skills (/ or Ctrl+K)..." oninput="handleSearch(this.value)">
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-notify" class="toast-pill">
+      <span id="toast-spark">✦</span>
+      <span id="toast-body">Skill installed & linked to ~/.gemini/config/plugins</span>
+    </div>
+
+    <!-- 1. Catalog Mode (Dual-Pane Master-Detail) -->
+    <div id="view-catalog" class="master-detail-workspace">
+      
+      <!-- Left List (Master) -->
+      <div class="master-pane" id="master-list-container">
+        <div class="pane-section-header">
+          <span>Available Plugins & Skills (6)</span>
+          <span style="font-size:0.68rem; color:var(--text-dim);">[↑/↓ Navigate · Space Toggle]</span>
+        </div>
+
+        <!-- Item 1 -->
+        <div class="skill-card-row selected" data-id="ship-armada" onclick="selectSkill('ship-armada')">
+          <div class="row-top-line">
+            <span class="status-spark installed">✓</span>
+            <span class="skill-title installed">ship-armada</span>
+            <span class="type-pill agent">Orchestrator</span>
+            <span class="mp-source-tag">fledgeling-plugins</span>
+          </div>
+          <div class="row-summary">Portfolio-wide standing daemon orchestrator across every project in ~/Dev — surveys, routes, and dispatches.</div>
+          <div class="row-meta-bar">
+            <span>v1.2.1</span>
+            <span>•</span>
+            <span>~105 tok frontmatter</span>
+            <span>•</span>
+            <span>Subagent Enabled</span>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="skill-card-row" data-id="create-swe-project" onclick="selectSkill('create-swe-project')">
+          <div class="row-top-line">
+            <span class="status-spark installed">✓</span>
+            <span class="skill-title installed">create-swe-project</span>
+            <span class="type-pill workflow">Scaffold</span>
+            <span class="mp-source-tag">fledgeling-plugins</span>
+          </div>
+          <div class="row-summary">Scaffold a complete, working new project in ~/Dev from a project idea — interview-only LLM, script-made files.</div>
+          <div class="row-meta-bar">
+            <span>v1.9.0</span>
+            <span>•</span>
+            <span>~118 tok frontmatter</span>
+            <span>•</span>
+            <span>120+ Templates</span>
+          </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="skill-card-row" data-id="ux-craft" onclick="selectSkill('ux-craft')">
+          <div class="row-top-line">
+            <span class="status-spark available">◉</span>
+            <span class="skill-title">ux-craft</span>
+            <span class="type-pill rule">Design Rule</span>
+            <span class="mp-source-tag">fledgeling-plugins</span>
+          </div>
+          <div class="row-summary">Book-grounded UX engine for implementing, mocking, and reviewing web/mobile UIs, layouts, and user flows.</div>
+          <div class="row-meta-bar">
+            <span>v1.4.0</span>
+            <span>•</span>
+            <span>~95 tok frontmatter</span>
+            <span>•</span>
+            <span>Nielsen/Norman Canon</span>
+          </div>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="skill-card-row" data-id="design-craft" onclick="selectSkill('design-craft')">
+          <div class="row-top-line">
+            <span class="status-spark available">◉</span>
+            <span class="skill-title">design-craft</span>
+            <span class="type-pill workflow">Artifact</span>
+            <span class="mp-source-tag">fledgeling-plugins</span>
+          </div>
+          <div class="row-summary">Opinionated, AI-slop-resistant designer for landing pages, prototypes, dashboards, and visual systems.</div>
+          <div class="row-meta-bar">
+            <span>v2.0.0</span>
+            <span>•</span>
+            <span>~110 tok frontmatter</span>
+            <span>•</span>
+            <span>Mobbin Trawl Integrated</span>
+          </div>
+        </div>
+
+        <!-- Item 5 -->
+        <div class="skill-card-row" data-id="create-amy-content" onclick="selectSkill('create-amy-content')">
+          <div class="row-top-line">
+            <span class="status-spark installed">✓</span>
+            <span class="skill-title installed">create-amy-content</span>
+            <span class="type-pill agent">Persona</span>
+            <span class="mp-source-tag">diolog-plugins</span>
+          </div>
+          <div class="row-summary">Write any content in Amy Benson's authentic voice (Founder & CEO), routed through eight persona variants.</div>
+          <div class="row-meta-bar">
+            <span>v1.6.1</span>
+            <span>•</span>
+            <span>~140 tok frontmatter</span>
+            <span>•</span>
+            <span>Stylometric Linter</span>
+          </div>
+        </div>
+
+        <!-- Item 6 -->
+        <div class="skill-card-row" data-id="create-company-deck" onclick="selectSkill('create-company-deck')">
+          <div class="row-top-line">
+            <span class="status-spark available">◉</span>
+            <span class="skill-title">create-company-deck</span>
+            <span class="type-pill mcp">MCP Powered</span>
+            <span class="mp-source-tag">diolog-plugins</span>
+          </div>
+          <div class="row-summary">Build high-quality self-contained HTML slide decks for a named company from company overview & DESIGN.md.</div>
+          <div class="row-meta-bar">
+            <span>v1.2.0</span>
+            <span>•</span>
+            <span>~100 tok frontmatter</span>
+            <span>•</span>
+            <span>media-gen-pro MCP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Inspector (Detail) -->
+      <div class="inspector-pane" id="inspector-pane">
+        <div class="inspector-header">
+          <div class="insp-title-row">
+            <span class="insp-name" id="insp-name">ship-armada</span>
+            <span class="insp-version" id="insp-version">v1.2.1</span>
+          </div>
+          <div class="insp-origin" id="insp-origin" style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:0.15rem;">
+            <span>⛃ <b style="color:#fff;">fledgeling-co/fledgeling-plugins</b></span>
+            <span style="font-size:0.72rem; color:var(--text-dim);">Commit: 3bf92a1</span>
+          </div>
+          <div class="insp-actions-row" id="insp-actions-row">
+            <button class="btn-insp danger" onclick="handleToggleInstall()">✕ Uninstall from AGY</button>
+            <button class="btn-insp secondary" onclick="syncSpecificSkill()">↻ Sparse Sync</button>
+          </div>
+        </div>
+
+        <!-- Trigger Contract -->
+        <div class="trigger-container">
+          <div class="trigger-header">
+            <span>✦ Activation Trigger Phrase (Level 1 Frontmatter)</span>
+          </div>
+          <div class="trigger-body" id="insp-trigger">
+            "Portfolio-wide orchestrator across every project in ~/Dev — the layer above ship-fleet, and the system prompt for a standing master-orchestrator agent/daemon. Use when someone wants portfolio-level management or hands over a directive to land in the right pipeline."
+          </div>
+        </div>
+
+        <!-- Capability Matrix -->
+        <div class="capability-grid">
+          <div class="cap-box">
+            <span class="cap-label">Token Footprint</span>
+            <span class="cap-value" id="insp-tokens">~105 tok (Discovery)</span>
+          </div>
+          <div class="cap-box">
+            <span class="cap-label">Schema Compliance</span>
+            <span class="cap-value" style="color:var(--gemini-emerald);">✓ AgentSkills.io v1</span>
+          </div>
+          <div class="cap-box">
+            <span class="cap-label">Target Discovery</span>
+            <span class="cap-value" style="color:var(--gemini-cyan);">~/.gemini/config/plugins</span>
+          </div>
+          <div class="cap-box">
+            <span class="cap-label">Git Sync Strategy</span>
+            <span class="cap-value">Sparse Cone Mode</span>
+          </div>
+        </div>
+
+        <!-- Live Ingestion Path -->
+        <div>
+          <div class="cap-label" style="margin-bottom:0.35rem;">Ingestion Staging Path</div>
+          <div class="path-box" id="insp-path">
+            <span>Symlink: <span class="highlight">~/.gemini/config/plugins/ship-armada</span></span>
+            <span>Target: ~/.gemini/plugins/marketplaces/fledgeling-plugins/plugins/ship-armada</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Marketplaces Mode View -->
+    <div id="view-marketplaces" class="marketplaces-pane" style="display:none;">
+      <div class="mp-hero-row">
+        <div>
+          <h2 style="font-size:1rem; font-weight:700; color:#fff;">Registered Marketplaces (4)</h2>
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Managed Git sparse repositories with continuous background auto-sync.</p>
+        </div>
+        <button class="btn-insp primary-install" onclick="promptAddMarketplace()">+ Add New Marketplace</button>
+      </div>
+
+      <div class="mp-cards-grid">
+        <!-- Marketplace Card 1 -->
+        <div class="mp-card active-mp" onclick="filterByMarketplace('fledgeling-plugins')">
+          <div class="mp-card-title">
+            <span class="mp-card-name">fledgeling-plugins</span>
+            <span class="type-pill agent">20 skills</span>
+          </div>
+          <div class="mp-card-repo">github.com/fledgeling-co/fledgeling-plugins</div>
+          <div class="mp-card-stats">
+            <span><b>2</b> Installed</span>
+            <span>•</span>
+            <span>Updated Today (8/14)</span>
+          </div>
+          <div class="mp-card-footer">
+            <span class="sync-status-badge"><span>⚡</span> Auto-Sync: Active (60fps IPC)</span>
+            <span style="color:var(--gemini-cyan); cursor:pointer;" onclick="event.stopPropagation(); triggerGitPull('fledgeling-plugins')">↻ Pull (u)</span>
+          </div>
+        </div>
+
+        <!-- Marketplace Card 2 -->
+        <div class="mp-card active-mp" onclick="filterByMarketplace('diolog-plugins')">
+          <div class="mp-card-title">
+            <span class="mp-card-name">diolog-plugins</span>
+            <span class="type-pill workflow">51 skills</span>
+          </div>
+          <div class="mp-card-repo">github.com/DiologIR/diolog-plugins</div>
+          <div class="mp-card-stats">
+            <span><b>1</b> Installed</span>
+            <span>•</span>
+            <span>Updated Today (8/14)</span>
+          </div>
+          <div class="mp-card-footer">
+            <span class="sync-status-badge"><span>⚡</span> Auto-Sync: Active (60fps IPC)</span>
+            <span style="color:var(--gemini-cyan); cursor:pointer;" onclick="event.stopPropagation(); triggerGitPull('diolog-plugins')">↻ Pull (u)</span>
+          </div>
+        </div>
+
+        <!-- Marketplace Card 3 -->
+        <div class="mp-card" onclick="filterByMarketplace('atlas-plugins')">
+          <div class="mp-card-title">
+            <span class="mp-card-name">atlas-plugins</span>
+            <span class="type-pill mcp">2 skills</span>
+          </div>
+          <div class="mp-card-repo">/Users/lukerhodes/Dev/atlas-app/apps/atlas-plugins</div>
+          <div class="mp-card-stats">
+            <span><b>0</b> Installed</span>
+            <span>•</span>
+            <span>Local Directory Worktree</span>
+          </div>
+          <div class="mp-card-footer">
+            <span style="color:var(--text-muted);">Local Path Watcher</span>
+            <span style="color:var(--gemini-cyan);">Rescan</span>
+          </div>
+        </div>
+
+        <!-- Marketplace Card 4 -->
+        <div class="mp-card" onclick="filterByMarketplace('last30days-skill')">
+          <div class="mp-card-title">
+            <span class="mp-card-name">last30days-skill</span>
+            <span class="type-pill rule">1 skill</span>
+          </div>
+          <div class="mp-card-repo">github.com/mvanhorn/last30days-skill</div>
+          <div class="mp-card-stats">
+            <span><b>0</b> Installed</span>
+            <span>•</span>
+            <span>Standalone Skill Repository</span>
+          </div>
+          <div class="mp-card-footer">
+            <span style="color:var(--text-muted);">Manual Sync Only</span>
+            <span style="color:var(--gemini-cyan);">↻ Pull</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Installed View -->
+    <div id="view-installed" class="marketplaces-pane" style="display:none;">
+      <div class="mp-hero-row">
+        <div>
+          <h2 style="font-size:1rem; font-weight:700; color:#fff;">Active Customizations in AGY (3)</h2>
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Live symlinks in <code>~/.gemini/config/plugins</code> parsed by Antigravity CLI at runtime.</p>
+        </div>
+        <button class="btn-insp secondary" onclick="verifyAllSymlinks()">✓ Verify Symlink Health</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:0.5rem;" id="installed-full-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- 4. Diagnostics Mode View -->
+    <div id="view-diagnostics" class="diagnostics-pane" style="display:none;">
+      <div>
+        <h2 style="font-size:1rem; font-weight:700; color:#fff;">Doctor & Integrity Diagnostics (2 Warnings)</h2>
+        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Automated health-check across AgentSkills.io frontmatter, symlinks, and MCP binaries.</p>
+      </div>
+
+      <div class="diag-item">
+        <div class="diag-title">
+          <span>✕</span>
+          <span>Deprecated Skill Reference: compaction-quality</span>
+        </div>
+        <div class="diag-msg">
+          Marketplace <code>fledgeling-plugins</code> renamed <code>compaction-quality</code> to <code>braindump</code> (v2.3.0). The legacy symlink at <code>~/.gemini/config/plugins/compaction-quality</code> is pointing to a retired path.
+        </div>
+        <div class="diag-actions">
+          <button class="btn-insp primary-install" onclick="resolveDiag('braindump')">Migrate to braindump (One-Click Fix)</button>
+          <button class="btn-insp secondary" onclick="dismissDiag(this)">Ignore</button>
+        </div>
+      </div>
+
+      <div class="diag-item">
+        <div class="diag-title">
+          <span>✕</span>
+          <span>Missing Language Server Binary: typescript-lsp</span>
+        </div>
+        <div class="diag-msg">
+          Plugin <code>typescript-lsp</code> specifies MCP command <code>typescript-language-server --stdio</code>, but the executable was not found in <code>$PATH</code>.
+        </div>
+        <div class="diag-actions">
+          <button class="btn-insp primary-install" onclick="resolveDiag('npm')">Run `npm i -g typescript-language-server`</button>
+          <button class="btn-insp secondary" onclick="dismissDiag(this)">Disable Plugin</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Footer -->
+    <div class="terminal-footer">
+      <div class="footer-hotkeys">
+        <div class="footer-hotkey-item"><span class="key-badge">Space</span> Toggle Install</div>
+        <div class="footer-hotkey-item"><span class="key-badge">u</span> Fast-Forward Sync</div>
+        <div class="footer-hotkey-item"><span class="key-badge">/</span> Filter Catalog</div>
+        <div class="footer-hotkey-item"><span class="key-badge">Tab</span> Switch Pane</div>
+      </div>
+      <div class="footer-engine-state">
+        <span>✦ agy core engine: <b>online</b></span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const skillsData = {
+      'ship-armada': {
+        name: 'ship-armada',
+        version: 'v1.2.1',
+        type: 'Orchestrator',
+        repo: 'fledgeling-co/fledgeling-plugins',
+        installed: true,
+        summary: 'Portfolio-wide standing daemon orchestrator across every project in ~/Dev — surveys, routes, and dispatches.',
+        trigger: '"Portfolio-wide orchestrator across every project in ~/Dev — the layer above ship-fleet, and the system prompt for a standing master-orchestrator agent/daemon. Use when someone wants portfolio-level management or hands over a directive to land in the right pipeline."',
+        tokens: '~105 tok (Discovery)',
+        path: '~/.gemini/config/plugins/ship-armada'
+      },
+      'create-swe-project': {
+        name: 'create-swe-project',
+        version: 'v1.9.0',
+        type: 'Scaffold',
+        repo: 'fledgeling-co/fledgeling-plugins',
+        installed: true,
+        summary: 'Scaffold a complete, working new project in ~/Dev from a project idea — interview-only LLM, script-made files.',
+        trigger: '"Scaffold a complete, working new project in ~/Dev from a project idea (formerly slipway). Front-loaded interview with inference (Next.js, NestJS, SwiftUI macOS/iOS, Expo, tokens, docker-compose dev env) then renders ~120 templates."',
+        tokens: '~118 tok (Discovery)',
+        path: '~/.gemini/config/plugins/create-swe-project'
+      },
+      'ux-craft': {
+        name: 'ux-craft',
+        version: 'v1.4.0',
+        type: 'Design Rule',
+        repo: 'fledgeling-co/fledgeling-plugins',
+        installed: false,
+        summary: 'Book-grounded UX engine for implementing, mocking, and reviewing web/mobile UIs, layouts, and user flows.',
+        trigger: '"Book-grounded UX engine for implementing, mocking, and reviewing web and mobile UIs, layouts, and user flows, plus marketing and transactional emails — grounded in the UX canon (Norman, Nielsen, Krug, Yablonski, Refactoring UI)."',
+        tokens: '~95 tok (Discovery)',
+        path: '~/.gemini/plugins/marketplaces/fledgeling-plugins/plugins/ux-craft'
+      },
+      'design-craft': {
+        name: 'design-craft',
+        version: 'v2.0.0',
+        type: 'Artifact',
+        repo: 'fledgeling-co/fledgeling-plugins',
+        installed: false,
+        summary: 'Opinionated, AI-slop-resistant designer for landing pages, prototypes, dashboards, and visual systems.',
+        trigger: '"Use whenever the user asks to design or build a user-facing visual artifact — a landing page, app screen, dashboard, clickable prototype, slide deck, wireframe, or design system — or to review/fix a design (anti-slop check)."',
+        tokens: '~110 tok (Discovery)',
+        path: '~/.gemini/plugins/marketplaces/fledgeling-plugins/plugins/design-craft'
+      },
+      'create-amy-content': {
+        name: 'create-amy-content',
+        version: 'v1.6.1',
+        type: 'Persona',
+        repo: 'diolog-plugins',
+        installed: true,
+        summary: 'Write any content in Amy Benson\'s authentic voice (Founder & CEO), routed through eight persona variants.',
+        trigger: '"Write any content in Amy Benson\'s authentic voice (Diolog Founder & CEO), routed through eight persona variants: LinkedIn posts, thought leadership, articles, marketing copy, and investor updates."',
+        tokens: '~140 tok (Discovery)',
+        path: '~/.gemini/config/plugins/create-amy-content'
+      },
+      'create-company-deck': {
+        name: 'create-company-deck',
+        version: 'v1.2.0',
+        type: 'MCP Powered',
+        repo: 'diolog-plugins',
+        installed: false,
+        summary: 'Build high-quality self-contained HTML slide decks for a named company from company overview & DESIGN.md.',
+        trigger: '"Build high-quality self-contained HTML slide decks for a named company from three inputs — company overview, DESIGN.md design tokens, and a source document or prompt — assembling proven slide layouts and media-gen-pro imagery."',
+        tokens: '~100 tok (Discovery)',
+        path: '~/.gemini/plugins/marketplaces/diolog-plugins/plugins/create-company-deck'
+      }
+    };
+
+    let activeSkillId = 'ship-armada';
+    let currentView = 'catalog';
+
+    function showToast(text, icon = '✦') {
+      const t = document.getElementById('toast-notify');
+      document.getElementById('toast-body').innerText = text;
+      document.getElementById('toast-spark').innerText = icon;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    function switchView(viewName) {
+      currentView = viewName;
+      document.querySelectorAll('.mode-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.view === viewName);
+      });
+
+      document.getElementById('view-catalog').style.display = viewName === 'catalog' ? 'grid' : 'none';
+      document.getElementById('view-marketplaces').style.display = viewName === 'marketplaces' ? 'flex' : 'none';
+      document.getElementById('view-installed').style.display = viewName === 'installed' ? 'flex' : 'none';
+      document.getElementById('view-diagnostics').style.display = viewName === 'diagnostics' ? 'flex' : 'none';
+
+      if (viewName === 'installed') {
+        renderInstalledList();
+      }
+    }
+
+    function selectSkill(skillId) {
+      activeSkillId = skillId;
+      const data = skillsData[skillId];
+      if (!data) return;
+
+      document.querySelectorAll('.skill-card-row').forEach(r => {
+        r.classList.toggle('selected', r.dataset.id === skillId);
+      });
+
+      // Update Inspector
+      document.getElementById('insp-name').innerText = data.name;
+      document.getElementById('insp-version').innerText = data.version;
+      document.getElementById('insp-origin').innerHTML = `<span>⛃ Repository:</span> <b style="color:#fff;">${data.repo}</b> <span>(Sparse Cone Mode)</span>`;
+      document.getElementById('insp-trigger').innerText = data.trigger;
+      document.getElementById('insp-tokens').innerText = data.tokens;
+      
+      const actionsContainer = document.getElementById('insp-actions-row');
+      if (data.installed) {
+        actionsContainer.innerHTML = `
+          <button class="btn-insp danger" onclick="handleToggleInstall()">✕ Uninstall from AGY</button>
+          <button class="btn-insp secondary" onclick="syncSpecificSkill()">↻ Sparse Sync</button>
+        `;
+        document.getElementById('insp-path').innerHTML = `
+          <span>Symlink: <span class="highlight">~/.gemini/config/plugins/${data.name}</span></span>
+          <span>Target: ~/.gemini/plugins/marketplaces/${data.repo.split('/')[1] || data.repo}/plugins/${data.name}</span>
+        `;
+      } else {
+        actionsContainer.innerHTML = `
+          <button class="btn-insp primary-install" onclick="handleToggleInstall()">+ Install to AGY (Space)</button>
+          <button class="btn-insp secondary" onclick="previewSkillSource()">Inspect SKILL.md</button>
+        `;
+        document.getElementById('insp-path').innerHTML = `
+          <span>Not installed. Target location on install:</span>
+          <span><span class="highlight">~/.gemini/config/plugins/${data.name}</span></span>
+        `;
+      }
+    }
+
+    function handleToggleInstall() {
+      const data = skillsData[activeSkillId];
+      if (!data) return;
+      data.installed = !data.installed;
+
+      const row = document.querySelector(`.skill-card-row[data-id="${activeSkillId}"]`);
+      if (row) {
+        const spark = row.querySelector('.status-spark');
+        const title = row.querySelector('.skill-title');
+        if (data.installed) {
+          spark.className = 'status-spark installed';
+          spark.innerText = '✓';
+          title.className = 'skill-title installed';
+          showToast(`Installed & symlinked ${data.name} → agy ready!`, '✓');
+        } else {
+          spark.className = 'status-spark available';
+          spark.innerText = '◉';
+          title.className = 'skill-title';
+          showToast(`Uninstalled ${data.name} (symlink removed)`, '✕');
+        }
+      }
+
+      selectSkill(activeSkillId);
+      updateInstalledCount();
+    }
+
+    function updateInstalledCount() {
+      const count = Object.values(skillsData).filter(s => s.installed).length;
+      document.getElementById('installed-counter-top').innerText = `${count} Skills`;
+    }
+
+    function renderInstalledList() {
+      const container = document.getElementById('installed-full-list');
+      const installed = Object.values(skillsData).filter(s => s.installed);
+      container.innerHTML = installed.map(item => `
+        <div class="skill-card-row" style="background:var(--bg-card); border-radius:8px; border:1px solid var(--border-subtle);">
+          <div class="row-top-line">
+            <span class="status-spark installed">✓</span>
+            <span class="skill-title installed">${item.name}</span>
+            <span class="type-pill ${item.type.toLowerCase().includes('agent') ? 'agent' : 'workflow'}">${item.type}</span>
+            <span class="mp-source-tag">${item.repo}</span>
+          </div>
+          <div class="row-summary">${item.summary}</div>
+          <div class="row-meta-bar" style="margin-top:0.3rem;">
+            <span>Symlink: ~/.gemini/config/plugins/${item.name}</span>
+            <span>•</span>
+            <span style="color:var(--gemini-rose); cursor:pointer;" onclick="activeSkillId='${item.name}'; handleToggleInstall(); renderInstalledList();">Uninstall</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function triggerGitPull(repoName) {
+      showToast(`Running git fetch + fast-forward on ${repoName}...`, '↻');
+      setTimeout(() => {
+        showToast(`${repoName} is 100% up to date (0 msgs behind upstream)`, '⚡');
+      }, 900);
+    }
+
+    function syncSpecificSkill() {
+      showToast(`Sparse-syncing ${activeSkillId} with upstream tree...`, '↻');
+      setTimeout(() => {
+        showToast(`${activeSkillId} tree verified!`, '✓');
+      }, 800);
+    }
+
+    function previewSkillSource() {
+      showToast(`Opening raw SKILL.md for ${activeSkillId}...`, '📖');
+    }
+
+    function promptAddMarketplace() {
+      const url = prompt('Enter GitHub repository (owner/repo), Git URL, or local path:');
+      if (url) {
+        showToast(`Cloning sparse tree for ${url}...`, '📥');
+        setTimeout(() => {
+          showToast(`Marketplace ${url} indexed into sparse catalog!`, '✓');
+        }, 1200);
+      }
+    }
+
+    function filterByMarketplace(mpName) {
+      switchView('catalog');
+      document.getElementById('fuzzy-search').value = mpName;
+      handleSearch(mpName);
+      showToast(`Filtered catalog by ${mpName}`, '⛃');
+    }
+
+    function handleSearch(query) {
+      const q = query.toLowerCase().trim();
+      const rows = document.querySelectorAll('#master-list-container .skill-card-row');
+      rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        r.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function resolveDiag(type) {
+      if (type === 'braindump') {
+        showToast('Updated symlink compaction-quality → braindump (v2.3.0)', '✓');
+      } else {
+        showToast('Running npm install -g typescript-language-server...', '⚙');
+      }
+    }
+
+    function dismissDiag(btn) {
+      btn.closest('.diag-item').style.opacity = '0.4';
+      btn.closest('.diag-item').style.pointerEvents = 'none';
+      showToast('Warning dismissed', '✓');
+    }
+
+    function verifyAllSymlinks() {
+      showToast('Auditing all 3 active plugin symlinks... All healthy!', '✓');
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '1') switchView('catalog');
+      if (e.key === '2') switchView('marketplaces');
+      if (e.key === '3') switchView('installed');
+      if (e.key === '4') switchView('diagnostics');
+      if (e.key === ' ' && currentView === 'catalog') {
+        e.preventDefault();
+        handleToggleInstall();
+      }
+      if (e.key === '/' && document.activeElement !== document.getElementById('fuzzy-search')) {
+        e.preventDefault();
+        document.getElementById('fuzzy-search').focus();
+      }
+      if (e.key === 'u') {
+        triggerGitPull('all repositories');
+      }
+    });
+  </script>
+</body>
+</html>
