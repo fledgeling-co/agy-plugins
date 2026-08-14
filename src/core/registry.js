@@ -103,6 +103,13 @@ export class Registry {
           const stat = fs.lstatSync(fullPath);
           if (stat.isSymbolicLink() || stat.isDirectory()) {
             const target = stat.isSymbolicLink() ? fs.readlinkSync(fullPath) : fullPath;
+            const resolved = path.resolve(path.dirname(fullPath), target);
+            
+            // Auto-heal missing plugin.json so Antigravity always discovers it
+            if (fs.existsSync(resolved)) {
+              Normalizer.ensureCompliantManifest(resolved, e);
+            }
+
             installed[e] = {
               name: e,
               version: '1.0.0',

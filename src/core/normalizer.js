@@ -132,6 +132,8 @@ export class Normalizer {
    * Inspects a single plugin directory.
    */
   static inspectPluginDir(name, pluginDir, marketplaceName, marketplaceRoot) {
+    this.ensureCompliantManifest(pluginDir, name);
+
     let description = '';
     let version = '1.0.0';
     let category = 'development';
@@ -164,6 +166,7 @@ export class Normalizer {
         const skillPath = path.join(skillsDir, sEntry);
         const skillMd = path.join(skillPath, 'SKILL.md');
         if (fs.existsSync(skillMd)) {
+          this.normalizeSkillFile(skillMd);
           const content = fs.readFileSync(skillMd, 'utf8');
           const frontmatter = this.parseSkillFrontmatter(content);
           skills.push({
@@ -180,6 +183,7 @@ export class Normalizer {
     } else {
       const rootSkillMd = path.join(pluginDir, 'SKILL.md');
       if (fs.existsSync(rootSkillMd)) {
+        this.normalizeSkillFile(rootSkillMd);
         const content = fs.readFileSync(rootSkillMd, 'utf8');
         const frontmatter = this.parseSkillFrontmatter(content);
         skills.push({
@@ -249,7 +253,7 @@ export class Normalizer {
     const lower = String(cat).toLowerCase();
     if (lower.includes('orchestrat')) return 'orchestration';
     if (lower.includes('design') || lower.includes('ux')) return 'design';
-    if (lower.includes('content') || lower.includes('writer')) return 'content';
+    if (lower.includes('content') || lower.includes('voice') || lower.includes('writer')) return 'content';
     if (lower.includes('mcp') || lower.includes('tool')) return 'mcp';
     if (lower.includes('rule') || lower.includes('guideline')) return 'rule';
     if (lower.includes('prod')) return 'productivity';
@@ -258,12 +262,52 @@ export class Normalizer {
   }
 
   static ensureCompliantManifest(pluginDir, pluginName) {
+    if (!fs.existsSync(pluginDir)) return;
     const targetJson = path.join(pluginDir, 'plugin.json');
     if (!fs.existsSync(targetJson)) {
-      const manifest = {
-        name: pluginName,
-      };
+      const claudeJson = path.join(pluginDir, '.claude-plugin', 'plugin.json');
+      let manifest = { name: pluginName };
+      if (fs.existsSync(claudeJson)) {
+        try {
+          const parsed = JSON.parse(fs.readFileSync(claudeJson, 'utf8'));
+          manifest = {
+            name: parsed.name || pluginName,
+            version: parsed.version || '1.0.0',
+            description: parsed.description || '',
+            category: parsed.category || 'development',
+          };
+        } catch {
+          // ignore
+        }
+      }
       fs.writeFileSync(targetJson, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+    }
+  }
+
+  static normalizeSkillFile(skillPath) {
+    if (!fs.existsSync(skillPath)) return;
+    try {
+      const content = fs.readFileSync(skillPath, 'utf8');
+      if (!content.startsWith('---')) return;
+
+      const endIndex = content.indexOf('---', 3);
+      if (endIndex === -1) return;
+
+      const rawYaml = content.slice(3, endIndex).trim();
+      const rest = content.slice(endIndex + 3);
+      const parsed = this.parseSkillFrontmatter(content);
+
+      if (!parsed.name || !parsed.description) return;
+
+      // If description isn't formatted with a YAML block scalar (>-, >, |), convert it
+      if (!rawYaml.includes('description: >') && !rawYaml.includes('description: |')) {
+        const cleanDesc = parsed.description.trim().replace(/\r?\n/g, ' ');
+        const newYaml = `---\nname: ${parsed.name}\ndescription: >-\n  ${cleanDesc}\n---`;
+        const newContent = newYaml + rest;
+        fs.writeFileSync(skillPath, newContent, 'utf8');
+      }
+    } catch {
+      // ignore
     }
   }
 }

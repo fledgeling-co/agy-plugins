@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import { Git } from './git.js';
 import { Registry } from './registry.js';
+import { Normalizer } from './normalizer.js';
 
 export class SyncEngine {
   static async syncMarketplace(entry) {
@@ -15,6 +16,9 @@ export class SyncEngine {
             const mps = Registry.getMarketplaces();
             mps[entry.name] = entry;
             Registry.saveMarketplaces(mps);
+
+            // Auto-heal manifests for all skills in cloned marketplace
+            Normalizer.discoverPluginsInMarketplace(entry.name, entry.installLocation);
 
             return {
               marketplace: entry.name,
@@ -42,6 +46,7 @@ export class SyncEngine {
     }
 
     if (!Git.isGitRepo(entry.installLocation)) {
+      Normalizer.discoverPluginsInMarketplace(entry.name, entry.installLocation);
       return {
         marketplace: entry.name,
         success: true,
@@ -57,6 +62,9 @@ export class SyncEngine {
       const mps = Registry.getMarketplaces();
       mps[entry.name] = entry;
       Registry.saveMarketplaces(mps);
+
+      // Auto-heal manifests for all skills in pulled marketplace
+      Normalizer.discoverPluginsInMarketplace(entry.name, entry.installLocation);
     }
 
     return {

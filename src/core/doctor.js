@@ -9,41 +9,46 @@ export class Doctor {
     const diagnostics = [];
     Paths.ensureDirs();
 
-    // 1. Check symlinks in ~/.gemini/config/plugins/
+    // 1. Check symlinks and directories in ~/.gemini/config/plugins/
     if (fs.existsSync(Paths.geminiConfigPlugins)) {
       const entries = fs.readdirSync(Paths.geminiConfigPlugins);
       for (const entry of entries) {
         const fullPath = path.join(Paths.geminiConfigPlugins, entry);
         try {
           const stat = fs.lstatSync(fullPath);
+          let targetDir = fullPath;
+
           if (stat.isSymbolicLink()) {
             const target = fs.readlinkSync(fullPath);
-            const resolved = path.resolve(path.dirname(fullPath), target);
-            if (!fs.existsSync(resolved)) {
+            targetDir = path.resolve(path.dirname(fullPath), target);
+            if (!fs.existsSync(targetDir)) {
               diagnostics.push({
                 id: `broken-symlink-${entry}`,
                 severity: 'error',
                 title: `Broken Symlink: ${entry}`,
-                message: `Symlink points to non-existent target: ${resolved}`,
+                message: `Symlink points to non-existent target: ${targetDir}`,
                 remediation: `Remove broken symlink or re-clone marketplace repository.`,
                 canAutoFix: true,
                 autoFixAction: 'remove_broken',
                 targetPath: fullPath,
               });
-            } else {
-              const manifestPath = path.join(resolved, 'plugin.json');
-              if (!fs.existsSync(manifestPath)) {
-                diagnostics.push({
-                  id: `missing-manifest-${entry}`,
-                  severity: 'warning',
-                  title: `Missing plugin.json Manifest: ${entry}`,
-                  message: `Plugin directory lacks top-level plugin.json required by Antigravity CLI.`,
-                  remediation: `Generate standard plugin.json marker.`,
-                  canAutoFix: true,
-                  autoFixAction: 'fix_manifest',
-                  targetPath: resolved,
-                });
-              }
+              continue;
+            }
+          }
+
+          if (fs.statSync(targetDir).isDirectory()) {
+            const manifestPath = path.join(targetDir, 'plugin.json');
+            if (!fs.existsSync(manifestPath)) {
+              diagnostics.push({
+                id: `missing-manifest-${entry}`,
+                severity: 'warning',
+                title: `Missing plugin.json: ${entry}`,
+                message: `Plugin directory lacks top-level plugin.json required by Antigravity CLI.`,
+                remediation: `Generate standard plugin.json marker.`,
+                canAutoFix: true,
+                autoFixAction: 'fix_manifest',
+                targetPath: targetDir,
+              });
             }
           }
         } catch (err) {
@@ -124,5 +129,20 @@ export class Doctor {
     } catch (err) {
       return { success: false, message: `Fix failed: ${err.message}` };
     }
+  }
+
+  static fixAll() {
+    const diags = this.runDiagnostics();
+    let fixed = 0;
+    for (const d of diags) {
+      if (d.canAutoFix) {
+        const res = this.applyAutoFix(d);
+        if (res.success) fixed++;
+      }
+    }
+    return {
+      success: true,
+      message: `Successfully resolved ${fixed} diagnostic issue(s)`,
+    };
   }
 }
