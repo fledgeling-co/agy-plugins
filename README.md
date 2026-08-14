@@ -25,11 +25,37 @@ When developers share AI skills and tools (like code reviewers, UX audit helpers
 
 ---
 
-## The two ways to use it
+## How to use it
 
-You can use `agy-plugins` either by chatting naturally with your AI assistant, or through terminal commands.
+You can use `agy-plugins` through a visual keyboard-friendly menu, by chatting naturally with your AI assistant, or through quick terminal commands.
 
-### Method 1: Let your AI handle it (Recommended)
+### Method 1: The Visual Interactive Manager
+
+If you prefer browsing and toggling skills visually with your keyboard:
+
+> [!IMPORTANT]
+> **Run this in its own separate Terminal tab or window.**
+> 
+> Open a fresh terminal window or tab (in Terminal, iTerm, or Ghostty) to run this command. Do not run it inside an active `agy` chat session; running an interactive full-screen visual menu inside an existing AI chat prompt will cause the two screens to overlap.
+
+```bash
+# In a fresh terminal tab:
+agy-plugin
+# or
+node /Users/lukerhodes/Dev/agy-plugins/bin/agy-plugins.js
+```
+
+#### How to navigate the visual menu
+- `1`, `2`, `3`, `4`: Switch between **Explore Skills**, **Marketplaces**, **Installed Tools**, and the **Doctor** health-check.
+- `↑` / `↓` Arrow Keys: Move up and down the list.
+- `Space` or `i`: Install or uninstall the highlighted skill.
+- `/`: Type to instantly search for any skill by keyword.
+- `u`: Pull the latest updates from GitHub right now.
+- `q`: Exit the menu.
+
+---
+
+### Method 2: Let your AI handle it (MCP)
 
 You can connect `agy-plugins` directly to your AI assistant using one command. Once connected, you can just ask your assistant in plain English to install or manage tools for you (e.g. *"Install the design-review skill from fledgeling-plugins"*).
 
@@ -39,7 +65,7 @@ To add it to Antigravity, run this single line in your terminal:
 agy mcp add agy-plugins "node /Users/lukerhodes/Dev/agy-plugins/bin/agy-plugins.js mcp"
 ```
 
-Everything you can do in the terminal, your AI assistant can now do for you automatically:
+Everything you can do in the visual menu, your AI assistant can now do for you automatically:
 - Discover and search for new skills across all your added marketplaces.
 - Install or remove skills with one sentence.
 - Add new marketplace collections from GitHub.
@@ -47,7 +73,7 @@ Everything you can do in the terminal, your AI assistant can now do for you auto
 
 ---
 
-### Method 2: Command-Line Shortcuts
+### Method 3: Command-Line Shortcuts
 
 `agy-plugins` gives you simple, familiar commands (matching the standard `skills.fledgeling.app` conventions):
 
@@ -94,33 +120,6 @@ Check whether any tools have broken links or missing dependencies:
 # Run the health check and automatically repair any issues
 agy-plugin doctor --fix
 ```
-
----
-
-### Method 3: The Visual Interactive Manager
-
-If you prefer browsing and toggling skills visually with your keyboard:
-
-> [!IMPORTANT]
-> **Run this in its own separate Terminal tab or window.**
-> 
-> Open a fresh terminal window or tab (in Terminal, iTerm, or Ghostty) to run this command. Do not run it inside an active `agy` chat session; running an interactive full-screen visual menu inside an existing AI chat prompt will cause the two screens to overlap.
-
-```bash
-# In a fresh terminal tab:
-agy-plugin
-# or
-node /Users/lukerhodes/Dev/agy-plugins/bin/agy-plugins.js
-```
-
-#### How to navigate the visual menu
-- `1`, `2`, `3`, `4`: Switch between **Explore Skills**, **Marketplaces**, **Installed Tools**, and the **Doctor** health-check.
-- `↑` / `↓` Arrow Keys: Move up and down the list.
-- `Space` or `i`: Install or uninstall the highlighted skill.
-- `/`: Type to instantly search for any skill by keyword.
-- `u`: Pull the latest updates from GitHub right now.
-- `q`: Exit the menu.
-
 ---
 
 ## Why it's fast and clean
