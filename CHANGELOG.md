@@ -2,21 +2,37 @@
 
 All notable changes to `agy-plugins` are documented in this file.
 
+## [1.4.0] - 2026-08-15
+
+### Added
+- **Marketplace Section Grouping**: Grouped plugins and skills under distinct marketplace sections across Explore [1] and Installed [3] tabs. Section headers show total skills and active counts (`── ⛃ diolog-plugins (50 skills, 18 active) ──`).
+- **Marketplace Overview Card**: Selecting any section header displays collection details in the inspector pane, including upstream repository urls, auto-sync status, local update timestamps, and quick action shortcuts.
+- **Section Grouping Toggle (`[g]` / `[m]`)**: Added a global hotkey across Explore and Installed tabs to toggle between grouped marketplace sections and a flat alphabetical list.
+- **Marketplace Drill-Down Hotkey (`[e]`)**: Pressing `e` in the Marketplaces tab [2] jumps straight to the Explore tab [1] focused on that collection's section.
+- **CLI and MCP Grouping Support**: Added `--grouped` and `--by-marketplace` flags to `agy-plugins list`, plus a `groupByMarketplace` parameter to the `plugin_list` FastMCP tool.
+- **Standalone and Symlinked Plugin Resolution**: Dynamically registered installed plugins discovered in `~/.gemini/config/plugins/` so custom and symlinked plugins resolve to their origin collection.
+
+### Changed
+- **Tabular Layout Overhaul**: Replaced jagged wrapping lists with fixed-width tabular grid columns and sticky headers (`NAME`, `VER`, `DESCRIPTION`, `ORIGIN`) across all tabs.
+- **Column Rebalance**: Removed cluttered `CATEGORY` and `ST` columns. Widened `ORIGIN` to 24-26 characters and narrowed `LAST UPDATE` to 18 characters.
+- **Streamlined Auto-Update Column**: Replaced bulky badges in the Marketplaces tab with a clean `AUTO UPDATE` column displaying `ON` or `OFF`.
+- **Clean Action Button Layout**: Split detail pane action buttons into two distinct lines to prevent terminal wrapping.
+- **Remapped Auto-Sync Shortcut**: Bound auto-update toggling to `Space` and `t` in the Marketplaces tab, reserving `Enter` exclusively for opening changelogs.
+
 ## [1.3.0] - 2026-08-15
 
 ### Added
-- **Plugin and Skill Version Visibility**: Surfaced granular plugin and skill versions across the Explore, Marketplaces, and Installed tabs in the TUI, the CLI inspect commands, and FastMCP tool outputs. Individual skill versions parsed from `SKILL.md` frontmatter are now tracked alongside parent plugin package versions.
-- **Changelog Engine and Discovery**: Added full changelog discovery capable of reading plugin-level `CHANGELOG.md` files as well as filtering plugin-specific release notes from marketplace-level changelogs.
-- **Scrollable TUI Changelog Modal**: Added a dedicated TrueColor changelog modal window opened via the `c` hotkey or inspector prompt across all tabs, rendering structured release notes, semantic version tags, and commit summaries with keyboard and mouse scroll support.
-- **CLI Changelog and Inspection Commands**: Added `agy-plugins changelog <plugin/marketplace>` and enhanced `agy-plugins info <plugin>` to output full version breakdowns, exposed tool lists, and formatted release history directly to the terminal.
-- **Local Marketplace Skill Update Timestamps**: Tracked local git commit author dates, short commit hashes, and commit subjects during clone, sync, and pull operations, displaying exact local update timings alongside background sync check intervals.
+- **Plugin and Skill Version Visibility**: Surfaced granular plugin and skill versions across Explore, Marketplaces, and Installed tabs in the TUI, CLI inspect commands, and FastMCP tool outputs. Individual skill versions parsed from `SKILL.md` frontmatter are now tracked alongside parent plugin package versions.
+- **Changelog Engine and Discovery**: Added changelog discovery capable of reading plugin-level `CHANGELOG.md` files as well as filtering plugin-specific release notes from marketplace-level changelogs.
+- **Scrollable TUI Changelog Modal**: Added a TrueColor changelog modal window opened via `c` or `Enter` across all tabs, rendering structured release notes, semantic version tags, and commit summaries with keyboard and mouse scroll support.
+- **CLI Changelog and Inspection Commands**: Added `agy-plugins changelog <plugin/marketplace>` and updated `agy-plugins info <plugin>` to output version breakdowns, exposed tool lists, and formatted release history directly to the terminal.
+- **Local Marketplace Skill Update Timestamps**: Tracked local git commit author dates, short commit hashes, and commit subjects during clone, sync, and pull operations.
 - **FastMCP Changelog Tools**: Added `plugin_changelog` and `marketplace_changelog` tools to the stdio MCP server for agentic consumption.
 
 ### Changed
-- Redesigned list views across all tabs (Explore, Marketplaces, Installed, Doctor) with sticky header bars, 52/48 proportional split, and fixed-width tabular grid columns (ST, NAME, VER, CATEGORY, DESCRIPTION, ORIGIN) replacing jagged single-line wrapping and bulky background badges.
-- Refactored right-hand inspector cards in the TUI to prominently display exposed skill breakdowns with per-skill version pills and recent changelog highlights.
+- Refactored right-hand inspector cards in the TUI to display exposed skill breakdowns with per-skill version pills and recent changelog highlights.
 - Enhanced Marketplaces view with commit hash badges, local skill update timestamps, and latest commit subject previews.
-- Expanded acceptance test suite to 41 tests across 9 suites covering changelog resolution, skill version normalisation, git commit extraction, and tabular layout alignment.
+- Expanded acceptance test suite to 44 tests across 9 suites covering changelog resolution, skill version normalisation, git commit extraction, section grouping, and tabular layout alignment.
 
 ## [1.2.2] - 2026-08-15
 
