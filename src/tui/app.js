@@ -1259,11 +1259,11 @@ export class TuiApp {
 
     // Top Live Action Buttons
     const actionBtn = p.installed 
-      ? '{#f43f5e-bg}{#ffffff-fg}{bold}  ✕ Uninstall from AGY  {/}' 
-      : '{#10b981-bg}{#ffffff-fg}{bold}  ✓ Install to AGY  {/}';
-    const syncBtn = '{#312e81-bg}{#ffffff-fg}{bold}  ↻ Sparse Sync  {/}';
-    const logBtn = '{#38bdf8-bg}{#08090e-fg}{bold}  ✦ [ c ] Changelog  {/}';
-    content += ` ${actionBtn}    ${syncBtn}    ${logBtn}\n\n`;
+      ? '{#f43f5e-bg}{#ffffff-fg}{bold}  ✕ Uninstall [Space]  {/}' 
+      : '{#10b981-bg}{#ffffff-fg}{bold}  ✓ Install [Space]  {/}';
+    const syncBtn = '{#312e81-bg}{#ffffff-fg}{bold}  ↻ Sync [u]  {/}';
+    const logBtn = '{#38bdf8-bg}{#08090e-fg}{bold}  ✦ Changelog [c]  {/}';
+    content += ` ${actionBtn}   ${syncBtn}   ${logBtn}\n\n`;
 
     // 1. Activation Trigger Card & Exposed Skills (With individual skill versions)
     const cardW = 60;
@@ -1428,8 +1428,17 @@ export class TuiApp {
     let content = `\n {bold}{#ffffff-fg}${k}{/} {#06b6d4-bg}{#08090e-fg}{bold} MARKETPLACE {/}\n`;
     content += ` {#64748b-fg}Remote Repository: https://github.com/${source}{/}\n\n`;
 
-    // Action Buttons
-    content += ` {#06b6d4-bg}{#08090e-fg}{bold}  [ Space / t ] Toggle Auto-Sync  {/}   {#38bdf8-bg}{#08090e-fg}{bold}  [ Enter / c ] Changelog  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ u ] Pull  {/}   {#d97706-bg}{#ffffff-fg}{bold}  [ f ] Force Reset  {/}   {#f43f5e-bg}{#ffffff-fg}{bold}  [ d ] Remove  {/}\n\n`;
+    // Action Buttons (Formatted in 2 clean rows to prevent line wrapping)
+    const syncBtn = mp.autoUpdate !== false 
+      ? '{#10b981-bg}{#08090e-fg}{bold}  [Space/t] Auto-Sync: ON  {/}' 
+      : '{#64748b-bg}{#ffffff-fg}{bold}  [Space/t] Auto-Sync: OFF  {/}';
+    const logBtn = '{#38bdf8-bg}{#08090e-fg}{bold}  [c] Changelog  {/}';
+    const pullBtn = '{#312e81-bg}{#ffffff-fg}{bold}  [u] Pull  {/}';
+    const resetBtn = '{#d97706-bg}{#ffffff-fg}{bold}  [f] Force Reset  {/}';
+    const removeBtn = '{#f43f5e-bg}{#ffffff-fg}{bold}  [d] Remove  {/}';
+
+    content += ` ${syncBtn}   ${logBtn}   ${pullBtn}\n`;
+    content += ` ${resetBtn}   ${removeBtn}\n\n`;
 
     // 2x2 Metric Grid Cards
     const cloneVal = `~/.gemini/plugins/...`.padEnd(28, ' ');
@@ -1655,7 +1664,7 @@ export class TuiApp {
     let content = `\n {bold}{#ffffff-fg}${d.title || d.name}{/} ${statusBadge}\n\n`;
 
     if (d.canAutoFix) {
-      content += ` {#10b981-bg}{#ffffff-fg}{bold}  [ Enter ] Auto-Fix This Issue  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ a ] Fix All Issues  {/}\n\n`;
+      content += ` {#10b981-bg}{#ffffff-fg}{bold}  [Enter] Auto-Fix Issue  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [a] Fix All Issues  {/}\n\n`;
     }
 
     content += ` {bold}{#818cf8-fg}ISSUE ANALYSIS{/}\n`;
