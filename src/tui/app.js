@@ -731,8 +731,12 @@ export class TuiApp {
       this.screen.render();
     });
 
-    this.catalogList.key(['space', 'i', 'enter'], async () => {
+    this.catalogList.key(['space', 'i'], async () => {
       await this.toggleCurrentPlugin();
+    });
+
+    this.catalogList.key(['enter'], () => {
+      this.openChangelogModal();
     });
 
     this.catalogList.key(['u'], async () => {
@@ -746,7 +750,7 @@ export class TuiApp {
       this.screen.render();
     });
 
-    this.mpList.key(['space', 'enter'], () => {
+    this.mpList.key(['space', 't'], () => {
       const mpKeys = Object.keys(this.marketplaces);
       const mp = mpKeys[this.selectedMpIndex];
       if (mp) {
@@ -754,6 +758,10 @@ export class TuiApp {
         this.showToast(`Auto-update for ${mp}: ${auto ? 'ENABLED' : 'PAUSED'}`);
         this.refreshData();
       }
+    });
+
+    this.mpList.key(['enter'], () => {
+      this.openChangelogModal();
     });
 
     this.mpList.key(['u'], async () => {
@@ -789,7 +797,7 @@ export class TuiApp {
       this.screen.render();
     });
 
-    this.instList.key(['space', 'd', 'enter'], async () => {
+    this.instList.key(['space', 'd'], async () => {
       const installed = this.plugins.filter(p => p.installed);
       const target = installed[this.selectedInstIndex];
       if (target) {
@@ -797,6 +805,10 @@ export class TuiApp {
         this.showToast(`Uninstalled ${target.name}`);
         this.refreshData();
       }
+    });
+
+    this.instList.key(['enter'], () => {
+      this.openChangelogModal();
     });
 
     // Tab 4 (Doctor) Events
@@ -1086,11 +1098,11 @@ export class TuiApp {
     const width = this.screen.width || 120;
     let help = '';
     if (this.currentTab === 'catalog') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/i]{/} {#cbd5e1-fg}Toggle Install{/}   {#38bdf8-fg}[c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Pull Updates{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/i]{/} {#cbd5e1-fg}Toggle Install{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Pull Updates{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'marketplaces') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space]{/} {#cbd5e1-fg}Auto-Sync{/}   {#38bdf8-fg}[c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f59e0b-fg}[f]{/} {#cbd5e1-fg}Force Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/t]{/} {#cbd5e1-fg}Auto-Sync{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f59e0b-fg}[f]{/} {#cbd5e1-fg}Force Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
     } else if (this.currentTab === 'installed') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#f43f5e-fg}[Space/d]{/} {#cbd5e1-fg}Uninstall Plugin{/}   {#38bdf8-fg}[c]{/} {#cbd5e1-fg}Changelog{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#f43f5e-fg}[Space/d]{/} {#cbd5e1-fg}Uninstall Plugin{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'doctor') {
       help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Enter]{/} {#cbd5e1-fg}Auto-Fix Issue{/}   {#10b981-fg}[a]{/} {#cbd5e1-fg}Fix All Issues{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     }
@@ -1126,6 +1138,33 @@ export class TuiApp {
     return lines;
   }
 
+  formatTableCell(text, width, color = null, bold = false, align = 'left') {
+    const raw = String(text || '').replace(/[\r\n\t]+/g, ' ');
+    let truncated = raw;
+    if (raw.length > width) {
+      truncated = width > 3 ? raw.slice(0, width - 2) + '..' : raw.slice(0, width);
+    }
+
+    let padded = '';
+    if (align === 'right') {
+      padded = truncated.padStart(width, ' ');
+    } else if (align === 'center') {
+      const padTotal = Math.max(0, width - truncated.length);
+      const padLeft = Math.floor(padTotal / 2);
+      const padRight = padTotal - padLeft;
+      padded = ' '.repeat(padLeft) + truncated + ' '.repeat(padRight);
+    } else {
+      padded = truncated.padEnd(width, ' ');
+    }
+
+    if (!color && !bold) return padded;
+
+    let styled = padded;
+    if (color) styled = `{${color}-fg}${styled}{/}`;
+    if (bold) styled = `{bold}${styled}{/}`;
+    return styled;
+  }
+
   formatCategoryTag(cat, width = 11) {
     const c = (cat || 'SKILL').toUpperCase();
     let shortName = c;
@@ -1142,9 +1181,7 @@ export class TuiApp {
     else if (c === 'SCAFFOLD') { shortName = 'SCAFFOLD'; color = '#38bdf8'; }
     else { shortName = c.slice(0, width - 4); color = '#64748b'; }
 
-    const formatted = `[${shortName}]`;
-    const padded = formatted.padEnd(width, ' ');
-    return `{${color}-fg}${padded}{/}`;
+    return this.formatTableCell(`[${shortName}]`, width, color);
   }
 
   getCategoryBadge(cat) {
@@ -1153,53 +1190,50 @@ export class TuiApp {
 
   updateCatalogList() {
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
-    const showOrigin = listWidth >= 75;
-    const originW = 14;
-    const fixedW = 4 + 23 + 8 + 11 + (showOrigin ? originW : 0);
+    const showOrigin = listWidth >= 80;
+    const originW = 15;
+    const stW = 4;
+    const nameW = 23;
+    const verW = 8;
+    const catW = 11;
+    const fixedW = 1 + stW + nameW + verW + catW + (showOrigin ? originW : 0);
     const descW = Math.max(10, listWidth - fixedW);
 
-    const stH = 'ST '.padEnd(4, ' ');
-    const nameH = 'NAME'.padEnd(23, ' ');
-    const verH = 'VER'.padEnd(8, ' ');
-    const catH = 'CATEGORY'.padEnd(11, ' ');
-    const descH = 'DESCRIPTION'.padEnd(descW, ' ');
-    const origH = showOrigin ? 'ORIGIN'.padEnd(originW, ' ') : '';
+    // Sticky Table Header
+    const stH = this.formatTableCell('ST', stW, '#64748b', true);
+    const nameH = this.formatTableCell('NAME', nameW, '#64748b', true);
+    const verH = this.formatTableCell('VER', verW, '#64748b', true);
+    const catH = this.formatTableCell('CATEGORY', catW, '#64748b', true);
+    const descLabel = descW < 11 ? 'DESC' : 'DESCRIPTION';
+    const descH = this.formatTableCell(descLabel, descW, '#64748b', true);
+    const origH = showOrigin ? this.formatTableCell('ORIGIN', originW, '#64748b', true) : '';
+    this.catalogHeader.setContent(` ${stH}${nameH}${verH}${catH}${descH}${origH}`);
 
-    this.catalogHeader.setContent(`{#64748b-fg}{bold} ${stH}${nameH}${verH}${catH}${descH}${origH}{/}`);
-    
-    const stDiv = '───'.padEnd(4, ' ');
-    const nameDiv = '─────────────────────'.padEnd(23, ' ');
-    const verDiv = '───────'.padEnd(8, ' ');
-    const catDiv = '─────────'.padEnd(11, ' ');
-    const descDiv = '─'.repeat(Math.max(4, descW - 2)).padEnd(descW, ' ');
-    const origDiv = showOrigin ? '──────────────'.padEnd(originW, ' ') : '';
-    this.catalogDivider.setContent(`{#312e81-fg} ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}{/}`);
+    // Table Divider
+    const stDiv = this.formatTableCell('───', stW, '#312e81');
+    const nameDiv = this.formatTableCell('─'.repeat(Math.max(2, nameW - 2)), nameW, '#312e81');
+    const verDiv = this.formatTableCell('─'.repeat(Math.max(2, verW - 2)), verW, '#312e81');
+    const catDiv = this.formatTableCell('─'.repeat(Math.max(2, catW - 2)), catW, '#312e81');
+    const descDiv = this.formatTableCell('─'.repeat(Math.max(2, descW - 2)), descW, '#312e81');
+    const origDiv = showOrigin ? this.formatTableCell('─'.repeat(Math.max(2, originW - 2)), originW, '#312e81') : '';
+    this.catalogDivider.setContent(` ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}`);
 
     const items = this.filteredPlugins.map(p => {
-      const icon = p.installed ? '{#10b981-fg}✓{/}' : '{#6366f1-fg}◉{/}';
-      const stCol = ` ${icon} `.padEnd(4, ' ');
+      const icon = p.installed ? '✓' : '◉';
+      const iconColor = p.installed ? '#10b981' : '#6366f1';
+      const stCell = this.formatTableCell(icon, stW, iconColor, false, 'center');
 
-      const rawName = p.name.length > 21 ? p.name.slice(0, 19) + '..' : p.name;
-      const nameCol = rawName.padEnd(23, ' ');
-
-      const verRaw = p.version ? `v${p.version}` : 'v1.0.0';
-      const verPadded = verRaw.slice(0, 7).padEnd(8, ' ');
-      const verCol = `{#38bdf8-fg}${verPadded}{/}`;
-
-      const catCol = this.formatCategoryTag(p.category, 11);
-
-      const rawDesc = (p.description || '').replace(/[\r\n\t]+/g, ' ');
-      const descTrunc = rawDesc.length > descW - 1 ? rawDesc.slice(0, descW - 3) + '..' : rawDesc;
-      const descCol = `{#94a3b8-fg}${descTrunc.padEnd(descW, ' ')}{/}`;
+      const nameCell = this.formatTableCell(p.name, nameW, null, true);
+      const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
+      const catCell = this.formatCategoryTag(p.category, catW);
+      const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
 
       if (showOrigin) {
-        const rawMp = p.marketplaceName || '';
-        const mpTrunc = rawMp.length > originW - 1 ? rawMp.slice(0, originW - 3) + '..' : rawMp;
-        const originCol = `{#64748b-fg}${mpTrunc.padEnd(originW, ' ')}{/}`;
-        return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}${originCol}`;
+        const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
+        return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}${origCell}`;
       }
 
-      return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}`;
+      return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}`;
     });
 
     this.catalogList.setItems(items);
@@ -1322,54 +1356,50 @@ export class TuiApp {
     const keys = Object.keys(this.marketplaces);
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
     const showOrigin = listWidth >= 80;
-    const originW = 20;
-    const nameW = 20;
-    const statusW = 14;
-    const skillsW = 10;
-    const fixedW = 2 + nameW + statusW + skillsW + (showOrigin ? originW : 0);
+    const originW = 18;
+    const nameW = 22;
+    const statusW = 13;
+    const skillsW = 11;
+    const fixedW = 1 + nameW + statusW + skillsW + (showOrigin ? originW : 0);
     const updateW = Math.max(12, listWidth - fixedW);
 
-    const nameH = 'COLLECTION'.padEnd(nameW, ' ');
-    const statusH = 'STATUS'.padEnd(statusW, ' ');
-    const skillsH = 'SKILLS'.padEnd(skillsW, ' ');
-    const updateH = 'LAST SKILLS UPDATE'.padEnd(updateW, ' ');
-    const origH = showOrigin ? 'ORIGIN'.padEnd(originW, ' ') : '';
+    // Sticky Table Header
+    const nameH = this.formatTableCell('COLLECTION', nameW, '#64748b', true);
+    const statusH = this.formatTableCell('STATUS', statusW, '#64748b', true);
+    const skillsH = this.formatTableCell('SKILLS', skillsW, '#64748b', true);
+    const updateH = this.formatTableCell('LAST SKILLS UPDATE', updateW, '#64748b', true);
+    const origH = showOrigin ? this.formatTableCell('ORIGIN', originW, '#64748b', true) : '';
+    this.mpHeader.setContent(` ${nameH}${statusH}${skillsH}${updateH}${origH}`);
 
-    this.mpHeader.setContent(`{#64748b-fg}{bold}  ${nameH}${statusH}${skillsH}${updateH}${origH}{/}`);
-    
-    const nameDiv = '──────────────────'.padEnd(nameW, ' ');
-    const statusDiv = '────────────'.padEnd(statusW, ' ');
-    const skillsDiv = '────────'.padEnd(skillsW, ' ');
-    const updateDiv = '─'.repeat(Math.max(4, updateW - 2)).padEnd(updateW, ' ');
-    const origDiv = showOrigin ? '──────────────────'.padEnd(originW, ' ') : '';
-    this.mpDivider.setContent(`{#312e81-fg}  ${nameDiv}${statusDiv}${skillsDiv}${updateDiv}${origDiv}{/}`);
+    // Table Divider
+    const nameDiv = this.formatTableCell('─'.repeat(Math.max(2, nameW - 2)), nameW, '#312e81');
+    const statusDiv = this.formatTableCell('─'.repeat(Math.max(2, statusW - 2)), statusW, '#312e81');
+    const skillsDiv = this.formatTableCell('─'.repeat(Math.max(2, skillsW - 2)), skillsW, '#312e81');
+    const updateDiv = this.formatTableCell('─'.repeat(Math.max(2, updateW - 2)), updateW, '#312e81');
+    const origDiv = showOrigin ? this.formatTableCell('─'.repeat(Math.max(2, originW - 2)), originW, '#312e81') : '';
+    this.mpDivider.setContent(` ${nameDiv}${statusDiv}${skillsDiv}${updateDiv}${origDiv}`);
 
     const items = keys.map(k => {
       const mp = this.marketplaces[k];
-      const autoSync = mp.autoUpdate !== false ? '{#10b981-fg}[Auto: ON]{/}' : '{#64748b-fg}[Auto: OFF]{/}';
-      const autoPadded = autoSync.padEnd(statusW + 10, ' ');
+      const nameCell = this.formatTableCell('⛃ ' + k, nameW, null, true);
+
+      const isAuto = mp.autoUpdate !== false;
+      const statusCell = this.formatTableCell(isAuto ? '[Auto: ON]' : '[Auto: OFF]', statusW, isAuto ? '#10b981' : '#64748b');
 
       const plugins = Registry.getPluginsForMarketplace(k);
-      const countStr = `${plugins.length} tools`.padEnd(skillsW, ' ');
-      const skillsCol = `{#06b6d4-fg}${countStr}{/}`;
-
-      const rawName = k.length > nameW - 2 ? k.slice(0, nameW - 4) + '..' : k;
-      const nameCol = `⛃ {bold}${rawName.padEnd(nameW - 2, ' ')}{/}`;
+      const skillsCell = this.formatTableCell(`${plugins.length} tools`, skillsW, '#06b6d4');
 
       const skillTime = this.formatRelativeTime(mp.lastSkillsUpdated || mp.commitDate || mp.lastUpdated);
       const commitTag = mp.commitSha ? ` (${mp.commitSha})` : '';
-      const updateRaw = `${skillTime}${commitTag}`;
-      const updateTrunc = updateRaw.length > updateW - 1 ? updateRaw.slice(0, updateW - 3) + '..' : updateRaw;
-      const updateCol = `{#10b981-fg}${updateTrunc.padEnd(updateW, ' ')}{/}`;
+      const updateCell = this.formatTableCell(`${skillTime}${commitTag}`, updateW, '#10b981');
 
       if (showOrigin) {
         const source = mp.source?.repo || mp.source || 'local';
-        const sourceTrunc = source.length > originW - 1 ? source.slice(0, originW - 3) + '..' : source;
-        const origCol = `{#94a3b8-fg}${sourceTrunc.padEnd(originW, ' ')}{/}`;
-        return ` ${nameCol}${autoPadded}${skillsCol}${updateCol}${origCol}`;
+        const origCell = this.formatTableCell(source, originW, '#64748b');
+        return ` ${nameCell}${statusCell}${skillsCell}${updateCell}${origCell}`;
       }
 
-      return ` ${nameCol}${autoPadded}${skillsCol}${updateCol}`;
+      return ` ${nameCell}${statusCell}${skillsCell}${updateCell}`;
     });
 
     this.mpList.setItems(items);
@@ -1399,7 +1429,7 @@ export class TuiApp {
     content += ` {#64748b-fg}Remote Repository: https://github.com/${source}{/}\n\n`;
 
     // Action Buttons
-    content += ` {#06b6d4-bg}{#08090e-fg}{bold}  [ Space ] Auto-Sync  {/}   {#38bdf8-bg}{#08090e-fg}{bold}  [ c ] Changelog  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ u ] Pull  {/}   {#d97706-bg}{#ffffff-fg}{bold}  [ f ] Force Reset  {/}   {#f43f5e-bg}{#ffffff-fg}{bold}  [ d ] Remove  {/}\n\n`;
+    content += ` {#06b6d4-bg}{#08090e-fg}{bold}  [ Space / t ] Toggle Auto-Sync  {/}   {#38bdf8-bg}{#08090e-fg}{bold}  [ Enter / c ] Changelog  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ u ] Pull  {/}   {#d97706-bg}{#ffffff-fg}{bold}  [ f ] Force Reset  {/}   {#f43f5e-bg}{#ffffff-fg}{bold}  [ d ] Remove  {/}\n\n`;
 
     // 2x2 Metric Grid Cards
     const cloneVal = `~/.gemini/plugins/...`.padEnd(28, ' ');
@@ -1455,53 +1485,47 @@ export class TuiApp {
   updateInstalledList() {
     const installed = this.plugins.filter(p => p.installed);
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
-    const showOrigin = listWidth >= 75;
-    const originW = 14;
-    const fixedW = 4 + 23 + 8 + 11 + (showOrigin ? originW : 0);
+    const showOrigin = listWidth >= 80;
+    const originW = 15;
+    const stW = 4;
+    const nameW = 23;
+    const verW = 8;
+    const catW = 11;
+    const fixedW = 1 + stW + nameW + verW + catW + (showOrigin ? originW : 0);
     const descW = Math.max(10, listWidth - fixedW);
 
-    const stH = 'ST '.padEnd(4, ' ');
-    const nameH = 'NAME'.padEnd(23, ' ');
-    const verH = 'VER'.padEnd(8, ' ');
-    const catH = 'CATEGORY'.padEnd(11, ' ');
-    const descH = 'DESCRIPTION'.padEnd(descW, ' ');
-    const origH = showOrigin ? 'ORIGIN'.padEnd(originW, ' ') : '';
+    // Sticky Table Header
+    const stH = this.formatTableCell('ST', stW, '#64748b', true);
+    const nameH = this.formatTableCell('NAME', nameW, '#64748b', true);
+    const verH = this.formatTableCell('VER', verW, '#64748b', true);
+    const catH = this.formatTableCell('CATEGORY', catW, '#64748b', true);
+    const descLabel = descW < 11 ? 'DESC' : 'DESCRIPTION';
+    const descH = this.formatTableCell(descLabel, descW, '#64748b', true);
+    const origH = showOrigin ? this.formatTableCell('ORIGIN', originW, '#64748b', true) : '';
+    this.instHeader.setContent(` ${stH}${nameH}${verH}${catH}${descH}${origH}`);
 
-    this.instHeader.setContent(`{#64748b-fg}{bold} ${stH}${nameH}${verH}${catH}${descH}${origH}{/}`);
-    
-    const stDiv = '───'.padEnd(4, ' ');
-    const nameDiv = '─────────────────────'.padEnd(23, ' ');
-    const verDiv = '───────'.padEnd(8, ' ');
-    const catDiv = '─────────'.padEnd(11, ' ');
-    const descDiv = '─'.repeat(Math.max(4, descW - 2)).padEnd(descW, ' ');
-    const origDiv = showOrigin ? '──────────────'.padEnd(originW, ' ') : '';
-    this.instDivider.setContent(`{#312e81-fg} ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}{/}`);
+    // Table Divider
+    const stDiv = this.formatTableCell('───', stW, '#312e81');
+    const nameDiv = this.formatTableCell('─'.repeat(Math.max(2, nameW - 2)), nameW, '#312e81');
+    const verDiv = this.formatTableCell('─'.repeat(Math.max(2, verW - 2)), verW, '#312e81');
+    const catDiv = this.formatTableCell('─'.repeat(Math.max(2, catW - 2)), catW, '#312e81');
+    const descDiv = this.formatTableCell('─'.repeat(Math.max(2, descW - 2)), descW, '#312e81');
+    const origDiv = showOrigin ? this.formatTableCell('─'.repeat(Math.max(2, originW - 2)), originW, '#312e81') : '';
+    this.instDivider.setContent(` ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}`);
 
     const items = installed.map(p => {
-      const icon = '{#10b981-fg}✓{/}';
-      const stCol = ` ${icon} `.padEnd(4, ' ');
-
-      const rawName = p.name.length > 21 ? p.name.slice(0, 19) + '..' : p.name;
-      const nameCol = rawName.padEnd(23, ' ');
-
-      const verRaw = p.version ? `v${p.version}` : 'v1.0.0';
-      const verPadded = verRaw.slice(0, 7).padEnd(8, ' ');
-      const verCol = `{#38bdf8-fg}${verPadded}{/}`;
-
-      const catCol = this.formatCategoryTag(p.category, 11);
-
-      const rawDesc = (p.description || '').replace(/[\r\n\t]+/g, ' ');
-      const descTrunc = rawDesc.length > descW - 1 ? rawDesc.slice(0, descW - 3) + '..' : rawDesc;
-      const descCol = `{#94a3b8-fg}${descTrunc.padEnd(descW, ' ')}{/}`;
+      const stCell = this.formatTableCell('✓', stW, '#10b981', false, 'center');
+      const nameCell = this.formatTableCell(p.name, nameW, null, true);
+      const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
+      const catCell = this.formatCategoryTag(p.category, catW);
+      const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
 
       if (showOrigin) {
-        const rawMp = p.marketplaceName || '';
-        const mpTrunc = rawMp.length > originW - 1 ? rawMp.slice(0, originW - 3) + '..' : rawMp;
-        const originCol = `{#64748b-fg}${mpTrunc.padEnd(originW, ' ')}{/}`;
-        return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}${originCol}`;
+        const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
+        return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}${origCell}`;
       }
 
-      return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}`;
+      return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}`;
     });
 
     this.instList.setItems(items);
@@ -1522,7 +1546,7 @@ export class TuiApp {
     let content = `\n {bold}{#ffffff-fg}${p.name}{/} {#10b981-bg}{#08090e-fg}{bold} ACTIVE IN AGY {/}\n`;
     content += ` {#64748b-fg}Origin Collection: ${p.marketplaceName}          Plugin Version: {#06b6d4-fg}v${p.version || '1.0.0'}{/}\n\n`;
 
-    content += ` {#f43f5e-bg}{#ffffff-fg}{bold}  [ Space / d ] Uninstall Plugin  {/}    {#38bdf8-bg}{#08090e-fg}{bold}  [ c ] View Changelog  {/}\n\n`;
+    content += ` {#f43f5e-bg}{#ffffff-fg}{bold}  [ Space / d ] Uninstall Plugin  {/}    {#38bdf8-bg}{#08090e-fg}{bold}  [ Enter / c ] Changelog  {/}\n\n`;
 
     // 2x2 Metric Cards
     const symlinkVal = `~/.gemini/config/plugins`.padEnd(28, ' ');
@@ -1573,39 +1597,40 @@ export class TuiApp {
 
   updateDoctorList() {
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
+    const stW = 4;
+    const sevW = 11;
     const fixW = 14;
-    const sevW = 10;
-    const fixedW = 4 + sevW + fixW;
+    const fixedW = 1 + stW + sevW + fixW;
     const titleW = Math.max(15, listWidth - fixedW);
 
-    const stH = 'ST '.padEnd(4, ' ');
-    const sevH = 'SEVERITY'.padEnd(sevW, ' ');
-    const titleH = 'DIAGNOSTIC ISSUE'.padEnd(titleW, ' ');
-    const fixH = 'AUTO-FIX'.padEnd(fixW, ' ');
+    // Sticky Table Header
+    const stH = this.formatTableCell('ST', stW, '#64748b', true);
+    const sevH = this.formatTableCell('SEVERITY', sevW, '#64748b', true);
+    const titleH = this.formatTableCell('DIAGNOSTIC ISSUE', titleW, '#64748b', true);
+    const fixH = this.formatTableCell('AUTO-FIX', fixW, '#64748b', true);
+    this.diagHeader.setContent(` ${stH}${sevH}${titleH}${fixH}`);
 
-    this.diagHeader.setContent(`{#64748b-fg}{bold} ${stH}${sevH}${titleH}${fixH}{/}`);
-    
-    const stDiv = '───'.padEnd(4, ' ');
-    const sevDiv = '────────'.padEnd(sevW, ' ');
-    const titleDiv = '─'.repeat(Math.max(4, titleW - 2)).padEnd(titleW, ' ');
-    const fixDiv = '────────────'.padEnd(fixW, ' ');
-    this.diagDivider.setContent(`{#312e81-fg} ${stDiv}${sevDiv}${titleDiv}${fixDiv}{/}`);
+    // Table Divider
+    const stDiv = this.formatTableCell('───', stW, '#312e81');
+    const sevDiv = this.formatTableCell('─'.repeat(Math.max(2, sevW - 2)), sevW, '#312e81');
+    const titleDiv = this.formatTableCell('─'.repeat(Math.max(2, titleW - 2)), titleW, '#312e81');
+    const fixDiv = this.formatTableCell('─'.repeat(Math.max(2, fixW - 2)), fixW, '#312e81');
+    this.diagDivider.setContent(` ${stDiv}${sevDiv}${titleDiv}${fixDiv}`);
 
     const items = this.diagnostics.map(d => {
-      const icon = d.severity === 'error' ? '{#f43f5e-fg}✕{/}' : d.severity === 'warning' ? '{#f59e0b-fg}⚠{/}' : '{#10b981-fg}✓{/}';
-      const stCol = ` ${icon} `.padEnd(4, ' ');
+      const icon = d.severity === 'error' ? '✕' : d.severity === 'warning' ? '⚠' : '✓';
+      const iconColor = d.severity === 'error' ? '#f43f5e' : d.severity === 'warning' ? '#f59e0b' : '#10b981';
+      const stCell = this.formatTableCell(icon, stW, iconColor, false, 'center');
 
-      const sevTag = d.severity === 'error' ? '{#f43f5e-fg}[ERROR]{/}' : d.severity === 'warning' ? '{#f59e0b-fg}[WARN]{/}' : '{#10b981-fg}[PASS]{/}';
-      const sevCol = sevTag.padEnd(sevW + 10, ' ');
+      const sevTag = d.severity === 'error' ? '[ERROR]' : d.severity === 'warning' ? '[WARN]' : '[PASS]';
+      const sevCell = this.formatTableCell(sevTag, sevW, iconColor);
 
-      const rawTitle = d.title || d.name || 'Diagnostic check';
-      const titleTrunc = rawTitle.length > titleW - 1 ? rawTitle.slice(0, titleW - 3) + '..' : rawTitle;
-      const titleCol = `{bold}${titleTrunc.padEnd(titleW, ' ')}{/}`;
+      const titleCell = this.formatTableCell(d.title || d.name || 'Diagnostic check', titleW, null, true);
 
-      const fixTag = d.canAutoFix ? '{#10b981-fg}Yes (Enter){/}' : '{#64748b-fg}Manual{/}';
-      const fixCol = fixTag.padEnd(fixW + 10, ' ');
+      const fixTag = d.canAutoFix ? 'Yes (Enter)' : 'Manual';
+      const fixCell = this.formatTableCell(fixTag, fixW, d.canAutoFix ? '#10b981' : '#64748b');
 
-      return `${stCol}${sevCol}${titleCol}${fixCol}`;
+      return ` ${stCell}${sevCell}${titleCell}${fixCell}`;
     });
 
     this.diagList.setItems(items);

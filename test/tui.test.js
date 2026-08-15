@@ -100,7 +100,7 @@ describe('TUI Application & Layout (TUI-001 - TUI-002)', () => {
     assert.match(headerRaw, /NAME/);
     assert.match(headerRaw, /VER/);
     assert.match(headerRaw, /CATEGORY/);
-    assert.match(headerRaw, /DESCRIPTION/);
+    assert.match(headerRaw, /DESC/);
 
     const dividerRaw = app.stripTags(app.catalogDivider.content);
     assert.match(dividerRaw, /───/);
