@@ -703,6 +703,20 @@ export class TuiApp {
       this.openChangelogModal();
     });
 
+    // Grouping Toggle Hotkey
+    this.screen.key(['g', 'm'], () => {
+      this.groupByMarketplace = !this.groupByMarketplace;
+      this.showToast(`Marketplace Sections: ${this.groupByMarketplace ? 'GROUPED' : 'FLAT LIST'}`);
+      if (this.currentTab === 'catalog') {
+        this.updateCatalogList();
+        this.updateCatalogDetail();
+      } else if (this.currentTab === 'installed') {
+        this.updateInstalledList();
+        this.updateInstalledDetail();
+      }
+      this.screen.render();
+    });
+
     // Changelog Modal Close Handlers
     this.changelogModal.key(['escape', 'q'], () => {
       this.closeChangelogModal();
@@ -1243,6 +1257,10 @@ export class TuiApp {
   }
 
   updateCatalogList() {
+    this.catalogContainer.setLabel(this.groupByMarketplace 
+      ? ' {bold}{#818cf8-fg}AVAILABLE PLUGINS & SKILLS [Grouped by Marketplace]{/} ' 
+      : ' {bold}{#818cf8-fg}AVAILABLE PLUGINS & SKILLS [Flat List]{/} ');
+
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
     const showOrigin = listWidth >= 70;
     const originW = 24;
@@ -1661,7 +1679,11 @@ export class TuiApp {
   }
 
   updateInstalledList() {
-    const installed = this.plugins.filter(p => p.installed);
+    this.installedContainer.setLabel(this.groupByMarketplace 
+      ? ' {bold}{#818cf8-fg}INSTALLED CUSTOMIZATION SUITE [Grouped by Marketplace]{/} ' 
+      : ' {bold}{#818cf8-fg}INSTALLED CUSTOMIZATION SUITE [Flat List]{/} ');
+
+    const installed = this.filteredPlugins.filter(p => p.installed);
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
     const showOrigin = listWidth >= 70;
     const originW = 24;

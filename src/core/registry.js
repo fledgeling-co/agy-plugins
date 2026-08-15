@@ -147,6 +147,7 @@ export class Registry {
     const marketplaces = this.getMarketplaces();
     const installed = this.getInstalledPlugins();
     const allPlugins = [];
+    const seen = new Set();
 
     for (const [mpName, mpEntry] of Object.entries(marketplaces)) {
       const loc = mpEntry.installLocation;
@@ -160,6 +161,31 @@ export class Registry {
           p.installedVersion = installed[p.name].version;
         }
         allPlugins.push(p);
+        seen.add(p.name);
+      }
+    }
+
+    // Include any standalone installed plugins not found in registered marketplaces
+    for (const [name, info] of Object.entries(installed)) {
+      if (!seen.has(name)) {
+        let mpName = info.marketplace || 'imported';
+        if (info.sourcePath && info.sourcePath.includes('/marketplaces/')) {
+          const match = info.sourcePath.match(/marketplaces\/([^/]+)/);
+          if (match) mpName = match[1];
+        }
+        allPlugins.push({
+          name,
+          version: info.version || '1.0.0',
+          description: `Custom installed plugin (${name})`,
+          category: 'skill',
+          marketplaceName: mpName,
+          marketplaceSource: mpName,
+          installed: true,
+          installedVersion: info.version || '1.0.0',
+          skills: [{ name, description: `Installed skill (${name})` }],
+          tokenFootprint: 110,
+        });
+        seen.add(name);
       }
     }
 

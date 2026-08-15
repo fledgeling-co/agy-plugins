@@ -138,4 +138,29 @@ describe('TUI Application & Layout (TUI-001 - TUI-002)', () => {
     assert.equal(app.catalogRowMap[0].type, 'plugin');
     assert.equal(app.catalogRowMap[0].plugin.name, 'sample-tui-plugin');
   });
+
+  it('TUI-008: groups installed plugins by marketplace sections and handles selection', () => {
+    app = new TuiApp();
+    // Mark the plugin as installed
+    app.plugins[0].installed = true;
+    app.filterPlugins();
+
+    app.switchTab('installed');
+    assert.equal(app.groupByMarketplace, true);
+    assert.ok(app.instRowMap.length >= 2);
+
+    // First row is marketplace banner
+    assert.equal(app.instRowMap[0].type, 'header');
+    assert.equal(app.instRowMap[0].marketplace, 'tui-market');
+
+    // Second row is installed plugin
+    assert.equal(app.instRowMap[1].type, 'plugin');
+    assert.equal(app.instRowMap[1].plugin.name, 'sample-tui-plugin');
+
+    // Switch grouping to flat list
+    app.groupByMarketplace = false;
+    app.updateInstalledList();
+    assert.equal(app.instRowMap[0].type, 'plugin');
+    assert.equal(app.instRowMap[0].plugin.name, 'sample-tui-plugin');
+  });
 });
