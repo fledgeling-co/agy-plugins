@@ -5,11 +5,20 @@ import { Registry } from './registry.js';
 import { Normalizer } from './normalizer.js';
 
 export class Installer {
-  static async installPlugin(plugin) {
+  static async installPlugin(pluginOrName) {
     Paths.ensureDirs();
 
+    let plugin = pluginOrName;
+    if (typeof pluginOrName === 'string') {
+      const all = Registry.getAllPlugins();
+      plugin = all.find((p) => p.name === pluginOrName);
+      if (!plugin) {
+        return { success: false, message: `Plugin not found: ${pluginOrName}` };
+      }
+    }
+
     const symlinkTarget = plugin.absolutePath;
-    if (!fs.existsSync(symlinkTarget)) {
+    if (!symlinkTarget || !fs.existsSync(symlinkTarget)) {
       return { success: false, message: `Source directory does not exist: ${symlinkTarget}` };
     }
 

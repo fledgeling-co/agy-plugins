@@ -73,6 +73,13 @@ export class McpServer {
     }
   }
 
+  static stopAutoSyncDaemon() {
+    if (this.autoSyncTimer) {
+      clearInterval(this.autoSyncTimer);
+      this.autoSyncTimer = null;
+    }
+  }
+
   static async handleRequest(req) {
     const { id, method, params } = req;
 

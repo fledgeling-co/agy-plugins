@@ -165,4 +165,17 @@ export class Registry {
 
     return allPlugins;
   }
+
+  static searchPlugins(query) {
+    const q = (query || '').toLowerCase().trim();
+    if (!q) return this.getAllPlugins();
+    const plugins = this.getAllPlugins();
+    return plugins.filter(p => (
+      p.name.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.marketplaceName.toLowerCase().includes(q) ||
+      p.skills.some(s => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
+    ));
+  }
 }

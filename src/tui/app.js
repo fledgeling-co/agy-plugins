@@ -1206,8 +1206,32 @@ export class TuiApp {
     this.refreshData();
   }
 
+  setTab(tabId) {
+    return this.switchTab(tabId);
+  }
+
   start() {
     this.catalogList.focus();
     this.screen.render();
+  }
+
+  destroy() {
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    if (this.screen) {
+      try {
+        this.screen.destroy();
+      } catch {}
+      this.screen = null;
+    }
+    if (process.stdin.isTTY && process.stdin.setRawMode) {
+      try {
+        process.stdin.setRawMode(false);
+      } catch {}
+    }
+    if (process.stdin.pause) {
+      try {
+        process.stdin.pause();
+      } catch {}
+    }
   }
 }

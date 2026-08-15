@@ -1,6 +1,6 @@
 {
   "name": "agy-plugins",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Native Plugin & Marketplace Manager for Antigravity CLI (AGY)",
   "type": "module",
   "main": "dist/cli/index.js",
@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node bin/agy-plugins.js",
+    "test": "node --test test/**/*.test.js",
     "tui": "node bin/agy-plugins.js tui",
     "mcp": "node bin/agy-plugins.js mcp",
     "doctor": "node bin/agy-plugins.js doctor"

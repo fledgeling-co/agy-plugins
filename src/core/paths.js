@@ -3,8 +3,18 @@ import * as os from 'node:os';
 import * as fs from 'node:fs';
 
 export class Paths {
+  static _customHome = null;
+
+  static setHome(customPath) {
+    this._customHome = customPath;
+  }
+
+  static resetHome() {
+    this._customHome = null;
+  }
+
   static get home() {
-    return os.homedir();
+    return this._customHome || process.env.AGY_HOME || os.homedir();
   }
 
   static get geminiRoot() {

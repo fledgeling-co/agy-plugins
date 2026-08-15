@@ -110,15 +110,38 @@ export async function runCli() {
       process.exit(1);
     }
 
-    case 'list': {
+    case 'list':
+    case 'ls': {
       const installedOnly = args.includes('--installed');
+      const jsonOutput = args.includes('--json');
       const all = Registry.getAllPlugins();
       const list = installedOnly ? all.filter(p => p.installed) : all;
+
+      if (jsonOutput) {
+        console.log(JSON.stringify(list, null, 2));
+        break;
+      }
 
       console.log(Ansi.bold(Ansi.prism.textPrimary(`Antigravity Plugins & Skills (${list.length})`)));
       console.log(Ansi.prism.textDim(`Configuration directory: ${Paths.geminiConfigPlugins}\n`));
 
       for (const p of list) {
+        const mark = p.installed ? Ansi.prism.emerald('✓ installed') : Ansi.prism.textDim('○ available');
+        console.log(` ${mark}  ${Ansi.bold(p.name)} ${Ansi.prism.cyan(`v${p.version}`)} ${Ansi.prism.textDim(`[${p.category}]`)} (${p.marketplaceName})`);
+        console.log(`    ${Ansi.prism.textSecondary(p.description)}`);
+      }
+      break;
+    }
+
+    case 'search': {
+      const query = args[1];
+      if (!query) {
+        console.error(Ansi.prism.rose('Error: Please provide a search query.'));
+        process.exit(1);
+      }
+      const results = Registry.searchPlugins(query);
+      console.log(Ansi.bold(Ansi.prism.textPrimary(`Search Results for "${query}" (${results.length})`)));
+      for (const p of results) {
         const mark = p.installed ? Ansi.prism.emerald('✓ installed') : Ansi.prism.textDim('○ available');
         console.log(` ${mark}  ${Ansi.bold(p.name)} ${Ansi.prism.cyan(`v${p.version}`)} ${Ansi.prism.textDim(`[${p.category}]`)} (${p.marketplaceName})`);
         console.log(`    ${Ansi.prism.textSecondary(p.description)}`);
@@ -244,10 +267,8 @@ export async function runCli() {
 
       if (autoFix) {
         console.log(Ansi.prism.spark('\nApplying automated repairs...'));
-        const fixResults = Doctor.autoFix();
-        for (const res of fixResults) {
-          console.log(` ${res.success ? Ansi.prism.emerald('✓') : Ansi.prism.rose('✕')} ${res.message}`);
-        }
+        const fixResult = Doctor.fixAll();
+        console.log(` ${fixResult.success ? Ansi.prism.emerald('✓') : Ansi.prism.rose('✕')} ${fixResult.message}`);
       } else {
         console.log(Ansi.prism.textDim('\nRun with `--fix` to apply automated remediations.'));
       }

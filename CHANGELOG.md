@@ -2,6 +2,17 @@
 
 All notable changes to `agy-plugins` are documented in this file.
 
+## [1.2.2] - 2026-08-15
+
+### Added
+- **Comprehensive Acceptance E2E Suite (`node:test`)**: Implemented a complete 30-test acceptance suite covering all surfaces (CLI subcommands, TUI state navigation, FastMCP JSON-RPC tools, Registry discovery, Installer atomic symlinks, Doctor diagnostics, and SyncEngine).
+- **CLI Search & JSON Output Modes**: Added native `agy-plugins search <query>` subcommand and structured `agy-plugins list --json` output formatting for programmatic integrations.
+- **Isolated Test Harness**: Added sandboxed environment configuration with disposable temporary storage to verify all install, link, sync, and diagnostic flows without touching live user directories.
+
+### Fixed
+- Fixed unhandled string plugin arguments in `Installer.installPlugin` to automatically resolve targets from registry metadata.
+- Fixed process lifecycle leaks across TUI blessed screens and background MCP auto-sync daemons on exit.
+
 ## [1.2.1] - 2026-08-15
 
 ### Added
