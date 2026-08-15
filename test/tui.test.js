@@ -99,13 +99,21 @@ describe('TUI Application & Layout (TUI-001 - TUI-002)', () => {
     const headerRaw = app.stripTags(app.catalogHeader.content);
     assert.match(headerRaw, /NAME/);
     assert.match(headerRaw, /VER/);
-    assert.match(headerRaw, /CATEGORY/);
     assert.match(headerRaw, /DESC/);
+
+    app.switchTab('marketplaces');
+    const mpHeaderRaw = app.stripTags(app.mpHeader.content);
+    assert.match(mpHeaderRaw, /COLLECTION/);
+    assert.match(mpHeaderRaw, /AUTO UPDATE/);
+    assert.match(mpHeaderRaw, /LAST UPDATE/);
+
+    app.switchTab('doctor');
+    const diagHeaderRaw = app.stripTags(app.diagHeader.content);
+    assert.match(diagHeaderRaw, /SEVERITY/);
+    assert.match(diagHeaderRaw, /ISSUE/);
+    assert.match(diagHeaderRaw, /AUTO-FIX/);
 
     const dividerRaw = app.stripTags(app.catalogDivider.content);
     assert.match(dividerRaw, /───/);
-
-    const formattedTag = app.formatCategoryTag('development', 11);
-    assert.match(formattedTag, /\[DEV\]/);
   });
 });

@@ -1190,50 +1190,46 @@ export class TuiApp {
 
   updateCatalogList() {
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
-    const showOrigin = listWidth >= 80;
-    const originW = 15;
-    const stW = 4;
-    const nameW = 23;
+    const showOrigin = listWidth >= 70;
+    const originW = 24;
+    const nameW = 26;
     const verW = 8;
-    const catW = 11;
-    const fixedW = 1 + stW + nameW + verW + catW + (showOrigin ? originW : 0);
-    const descW = Math.max(10, listWidth - fixedW);
+    const fixedW = 1 + nameW + verW + (showOrigin ? originW : 0);
+    const descW = Math.max(12, listWidth - fixedW);
 
     // Sticky Table Header
-    const stH = this.formatTableCell('ST', stW, '#64748b', true);
     const nameH = this.formatTableCell('NAME', nameW, '#64748b', true);
     const verH = this.formatTableCell('VER', verW, '#64748b', true);
-    const catH = this.formatTableCell('CATEGORY', catW, '#64748b', true);
     const descLabel = descW < 11 ? 'DESC' : 'DESCRIPTION';
     const descH = this.formatTableCell(descLabel, descW, '#64748b', true);
     const origH = showOrigin ? this.formatTableCell('ORIGIN', originW, '#64748b', true) : '';
-    this.catalogHeader.setContent(` ${stH}${nameH}${verH}${catH}${descH}${origH}`);
+    this.catalogHeader.setContent(` ${nameH}${verH}${descH}${origH}`);
 
     // Table Divider
-    const stDiv = this.formatTableCell('───', stW, '#312e81');
     const nameDiv = this.formatTableCell('─'.repeat(Math.max(2, nameW - 2)), nameW, '#312e81');
     const verDiv = this.formatTableCell('─'.repeat(Math.max(2, verW - 2)), verW, '#312e81');
-    const catDiv = this.formatTableCell('─'.repeat(Math.max(2, catW - 2)), catW, '#312e81');
     const descDiv = this.formatTableCell('─'.repeat(Math.max(2, descW - 2)), descW, '#312e81');
     const origDiv = showOrigin ? this.formatTableCell('─'.repeat(Math.max(2, originW - 2)), originW, '#312e81') : '';
-    this.catalogDivider.setContent(` ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}`);
+    this.catalogDivider.setContent(` ${nameDiv}${verDiv}${descDiv}${origDiv}`);
 
     const items = this.filteredPlugins.map(p => {
-      const icon = p.installed ? '✓' : '◉';
+      const icon = p.installed ? '✓ ' : '◉ ';
       const iconColor = p.installed ? '#10b981' : '#6366f1';
-      const stCell = this.formatTableCell(icon, stW, iconColor, false, 'center');
+      const iconStyled = `{${iconColor}-fg}${icon}{/}`;
+      const rawName = p.name;
+      const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
+      const paddedName = truncatedName.padEnd(nameW - 2, ' ');
+      const nameCell = `${iconStyled}{bold}${paddedName}{/}`;
 
-      const nameCell = this.formatTableCell(p.name, nameW, null, true);
       const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
-      const catCell = this.formatCategoryTag(p.category, catW);
       const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
 
       if (showOrigin) {
         const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
-        return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}${origCell}`;
+        return ` ${nameCell}${verCell}${descCell}${origCell}`;
       }
 
-      return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}`;
+      return ` ${nameCell}${verCell}${descCell}`;
     });
 
     this.catalogList.setItems(items);
@@ -1355,19 +1351,19 @@ export class TuiApp {
   updateMarketplacesList() {
     const keys = Object.keys(this.marketplaces);
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
-    const showOrigin = listWidth >= 80;
-    const originW = 18;
+    const showOrigin = listWidth >= 70;
     const nameW = 22;
     const statusW = 13;
-    const skillsW = 11;
-    const fixedW = 1 + nameW + statusW + skillsW + (showOrigin ? originW : 0);
-    const updateW = Math.max(12, listWidth - fixedW);
+    const skillsW = 10;
+    const updateW = 18;
+    const fixedW = 1 + nameW + statusW + skillsW + updateW;
+    const originW = showOrigin ? Math.max(22, listWidth - fixedW) : 0;
 
     // Sticky Table Header
     const nameH = this.formatTableCell('COLLECTION', nameW, '#64748b', true);
-    const statusH = this.formatTableCell('STATUS', statusW, '#64748b', true);
+    const statusH = this.formatTableCell('AUTO UPDATE', statusW, '#64748b', true);
     const skillsH = this.formatTableCell('SKILLS', skillsW, '#64748b', true);
-    const updateH = this.formatTableCell('LAST SKILLS UPDATE', updateW, '#64748b', true);
+    const updateH = this.formatTableCell('LAST UPDATE', updateW, '#64748b', true);
     const origH = showOrigin ? this.formatTableCell('ORIGIN', originW, '#64748b', true) : '';
     this.mpHeader.setContent(` ${nameH}${statusH}${skillsH}${updateH}${origH}`);
 
@@ -1384,7 +1380,7 @@ export class TuiApp {
       const nameCell = this.formatTableCell('⛃ ' + k, nameW, null, true);
 
       const isAuto = mp.autoUpdate !== false;
-      const statusCell = this.formatTableCell(isAuto ? '[Auto: ON]' : '[Auto: OFF]', statusW, isAuto ? '#10b981' : '#64748b');
+      const statusCell = this.formatTableCell(isAuto ? 'ON' : 'OFF', statusW, isAuto ? '#10b981' : '#64748b', true);
 
       const plugins = Registry.getPluginsForMarketplace(k);
       const skillsCell = this.formatTableCell(`${plugins.length} tools`, skillsW, '#06b6d4');
@@ -1494,47 +1490,44 @@ export class TuiApp {
   updateInstalledList() {
     const installed = this.plugins.filter(p => p.installed);
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
-    const showOrigin = listWidth >= 80;
-    const originW = 15;
-    const stW = 4;
-    const nameW = 23;
+    const showOrigin = listWidth >= 70;
+    const originW = 24;
+    const nameW = 26;
     const verW = 8;
-    const catW = 11;
-    const fixedW = 1 + stW + nameW + verW + catW + (showOrigin ? originW : 0);
-    const descW = Math.max(10, listWidth - fixedW);
+    const fixedW = 1 + nameW + verW + (showOrigin ? originW : 0);
+    const descW = Math.max(12, listWidth - fixedW);
 
     // Sticky Table Header
-    const stH = this.formatTableCell('ST', stW, '#64748b', true);
     const nameH = this.formatTableCell('NAME', nameW, '#64748b', true);
     const verH = this.formatTableCell('VER', verW, '#64748b', true);
-    const catH = this.formatTableCell('CATEGORY', catW, '#64748b', true);
     const descLabel = descW < 11 ? 'DESC' : 'DESCRIPTION';
     const descH = this.formatTableCell(descLabel, descW, '#64748b', true);
     const origH = showOrigin ? this.formatTableCell('ORIGIN', originW, '#64748b', true) : '';
-    this.instHeader.setContent(` ${stH}${nameH}${verH}${catH}${descH}${origH}`);
+    this.instHeader.setContent(` ${nameH}${verH}${descH}${origH}`);
 
     // Table Divider
-    const stDiv = this.formatTableCell('───', stW, '#312e81');
     const nameDiv = this.formatTableCell('─'.repeat(Math.max(2, nameW - 2)), nameW, '#312e81');
     const verDiv = this.formatTableCell('─'.repeat(Math.max(2, verW - 2)), verW, '#312e81');
-    const catDiv = this.formatTableCell('─'.repeat(Math.max(2, catW - 2)), catW, '#312e81');
     const descDiv = this.formatTableCell('─'.repeat(Math.max(2, descW - 2)), descW, '#312e81');
     const origDiv = showOrigin ? this.formatTableCell('─'.repeat(Math.max(2, originW - 2)), originW, '#312e81') : '';
-    this.instDivider.setContent(` ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}`);
+    this.instDivider.setContent(` ${nameDiv}${verDiv}${descDiv}${origDiv}`);
 
     const items = installed.map(p => {
-      const stCell = this.formatTableCell('✓', stW, '#10b981', false, 'center');
-      const nameCell = this.formatTableCell(p.name, nameW, null, true);
+      const icon = '{#10b981-fg}✓ {/}';
+      const rawName = p.name;
+      const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
+      const paddedName = truncatedName.padEnd(nameW - 2, ' ');
+      const nameCell = `${icon}{bold}${paddedName}{/}`;
+
       const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
-      const catCell = this.formatCategoryTag(p.category, catW);
       const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
 
       if (showOrigin) {
         const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
-        return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}${origCell}`;
+        return ` ${nameCell}${verCell}${descCell}${origCell}`;
       }
 
-      return ` ${stCell}${nameCell}${verCell}${catCell}${descCell}`;
+      return ` ${nameCell}${verCell}${descCell}`;
     });
 
     this.instList.setItems(items);
@@ -1606,40 +1599,35 @@ export class TuiApp {
 
   updateDoctorList() {
     const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
-    const stW = 4;
-    const sevW = 11;
+    const sevW = 13;
     const fixW = 14;
-    const fixedW = 1 + stW + sevW + fixW;
+    const fixedW = 1 + sevW + fixW;
     const titleW = Math.max(15, listWidth - fixedW);
 
     // Sticky Table Header
-    const stH = this.formatTableCell('ST', stW, '#64748b', true);
     const sevH = this.formatTableCell('SEVERITY', sevW, '#64748b', true);
-    const titleH = this.formatTableCell('DIAGNOSTIC ISSUE', titleW, '#64748b', true);
+    const titleLabel = titleW < 16 ? 'ISSUE' : 'DIAGNOSTIC ISSUE';
+    const titleH = this.formatTableCell(titleLabel, titleW, '#64748b', true);
     const fixH = this.formatTableCell('AUTO-FIX', fixW, '#64748b', true);
-    this.diagHeader.setContent(` ${stH}${sevH}${titleH}${fixH}`);
+    this.diagHeader.setContent(` ${sevH}${titleH}${fixH}`);
 
     // Table Divider
-    const stDiv = this.formatTableCell('───', stW, '#312e81');
     const sevDiv = this.formatTableCell('─'.repeat(Math.max(2, sevW - 2)), sevW, '#312e81');
     const titleDiv = this.formatTableCell('─'.repeat(Math.max(2, titleW - 2)), titleW, '#312e81');
     const fixDiv = this.formatTableCell('─'.repeat(Math.max(2, fixW - 2)), fixW, '#312e81');
-    this.diagDivider.setContent(` ${stDiv}${sevDiv}${titleDiv}${fixDiv}`);
+    this.diagDivider.setContent(` ${sevDiv}${titleDiv}${fixDiv}`);
 
     const items = this.diagnostics.map(d => {
       const icon = d.severity === 'error' ? '✕' : d.severity === 'warning' ? '⚠' : '✓';
       const iconColor = d.severity === 'error' ? '#f43f5e' : d.severity === 'warning' ? '#f59e0b' : '#10b981';
-      const stCell = this.formatTableCell(icon, stW, iconColor, false, 'center');
+      const sevText = d.severity === 'error' ? 'ERROR' : d.severity === 'warning' ? 'WARN' : 'PASS';
+      const sevCell = this.formatTableCell(`${icon} ${sevText}`, sevW, iconColor, true);
 
-      const sevTag = d.severity === 'error' ? '[ERROR]' : d.severity === 'warning' ? '[WARN]' : '[PASS]';
-      const sevCell = this.formatTableCell(sevTag, sevW, iconColor);
-
-      const titleCell = this.formatTableCell(d.title || d.name || 'Diagnostic check', titleW, null, true);
-
+      const titleCell = this.formatTableCell(d.title || d.name || 'Diagnostic check', titleW, null, false);
       const fixTag = d.canAutoFix ? 'Yes (Enter)' : 'Manual';
       const fixCell = this.formatTableCell(fixTag, fixW, d.canAutoFix ? '#10b981' : '#64748b');
 
-      return ` ${stCell}${sevCell}${titleCell}${fixCell}`;
+      return ` ${sevCell}${titleCell}${fixCell}`;
     });
 
     this.diagList.setItems(items);
