@@ -90,4 +90,22 @@ describe('TUI Application & Layout (TUI-001 - TUI-002)', () => {
     app.filterPlugins();
     assert.equal(app.filteredPlugins.length, 0);
   });
+
+  it('TUI-006: formats tabular sticky headers and aligned grid columns', () => {
+    app = new TuiApp();
+    assert.ok(app.catalogHeader);
+    assert.ok(app.catalogDivider);
+    
+    const headerRaw = app.stripTags(app.catalogHeader.content);
+    assert.match(headerRaw, /NAME/);
+    assert.match(headerRaw, /VER/);
+    assert.match(headerRaw, /CATEGORY/);
+    assert.match(headerRaw, /DESCRIPTION/);
+
+    const dividerRaw = app.stripTags(app.catalogDivider.content);
+    assert.match(dividerRaw, /───/);
+
+    const formattedTag = app.formatCategoryTag('development', 11);
+    assert.match(formattedTag, /\[DEV\]/);
+  });
 });

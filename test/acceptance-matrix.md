@@ -42,3 +42,4 @@ Acceptance-criteria traceability matrix and verification ledger for `agy-plugins
 | **TUI-001** | TUI Tab Navigation | Switches between Explore, Marketplaces, Installed, and Doctor tabs | `test/tui.test.js` | ✓ Covered |
 | **TUI-002** | TUI Card Layout | Formats 2x2 metric tiles, activation trigger boxes, and staging paths | `test/tui.test.js` | ✓ Covered |
 | **TUI-003** | TUI Changelog Modal | Displays scrollable release history modal via `c` hotkey across tabs | `test/tui.test.js` | ✓ Covered |
+| **TUI-006** | Tabular Grid Columns | Sticky header bars and fixed-width tabular column alignment across lists | `test/tui.test.js` | ✓ Covered |

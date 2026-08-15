@@ -13,9 +13,10 @@ All notable changes to `agy-plugins` are documented in this file.
 - **FastMCP Changelog Tools**: Added `plugin_changelog` and `marketplace_changelog` tools to the stdio MCP server for agentic consumption.
 
 ### Changed
+- Redesigned list views across all tabs (Explore, Marketplaces, Installed, Doctor) with sticky header bars, 52/48 proportional split, and fixed-width tabular grid columns (ST, NAME, VER, CATEGORY, DESCRIPTION, ORIGIN) replacing jagged single-line wrapping and bulky background badges.
 - Refactored right-hand inspector cards in the TUI to prominently display exposed skill breakdowns with per-skill version pills and recent changelog highlights.
 - Enhanced Marketplaces view with commit hash badges, local skill update timestamps, and latest commit subject previews.
-- Expanded acceptance test suite to 40 tests across 9 suites covering changelog resolution, skill version normalisation, and git commit extraction.
+- Expanded acceptance test suite to 41 tests across 9 suites covering changelog resolution, skill version normalisation, git commit extraction, and tabular layout alignment.
 
 ## [1.2.2] - 2026-08-15
 

@@ -147,6 +147,7 @@ export class TuiApp {
     });
 
     // ==========================================
+    // ==========================================
     // TAB 1: CATALOG VIEW (Explore & Skills)
     // ==========================================
     this.catalogView = blessed.box({
@@ -158,14 +159,48 @@ export class TuiApp {
       style: { bg: '#08090e' }
     });
 
-    this.catalogList = blessed.list({
+    this.catalogContainer = blessed.box({
       parent: this.catalogView,
       top: 0,
       left: 0,
-      width: '46%',
+      width: '52%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}AVAILABLE PLUGINS & SKILLS{/} ',
+      tags: true,
+      style: {
+        bg: '#0f111a',
+        border: { fg: '#312e81' }
+      }
+    });
+
+    this.catalogHeader = blessed.box({
+      parent: this.catalogContainer,
+      top: 0,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#121524' }
+    });
+
+    this.catalogDivider = blessed.box({
+      parent: this.catalogContainer,
+      top: 1,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#0f111a' }
+    });
+
+    this.catalogList = blessed.list({
+      parent: this.catalogContainer,
+      top: 2,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      border: false,
       tags: true,
       scrollable: true,
       keys: true,
@@ -178,7 +213,6 @@ export class TuiApp {
       },
       style: {
         bg: '#0f111a',
-        border: { fg: '#312e81' },
         selected: {
           bg: '#1e1b4b',
           fg: '#ffffff',
@@ -193,8 +227,8 @@ export class TuiApp {
     this.catalogDetail = blessed.box({
       parent: this.catalogView,
       top: 0,
-      left: '46%',
-      width: '54%',
+      left: '52%',
+      width: '48%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}INSPECTOR & ACTIVATION MATRIX{/} ',
@@ -227,14 +261,48 @@ export class TuiApp {
       style: { bg: '#08090e' }
     });
 
-    this.mpList = blessed.list({
+    this.marketplacesContainer = blessed.box({
       parent: this.marketplacesView,
       top: 0,
       left: 0,
-      width: '46%',
+      width: '52%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}REGISTERED MARKETPLACE REPOSITORIES{/} ',
+      tags: true,
+      style: {
+        bg: '#0f111a',
+        border: { fg: '#312e81' }
+      }
+    });
+
+    this.mpHeader = blessed.box({
+      parent: this.marketplacesContainer,
+      top: 0,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#121524' }
+    });
+
+    this.mpDivider = blessed.box({
+      parent: this.marketplacesContainer,
+      top: 1,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#0f111a' }
+    });
+
+    this.mpList = blessed.list({
+      parent: this.marketplacesContainer,
+      top: 2,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      border: false,
       tags: true,
       scrollable: true,
       keys: true,
@@ -247,7 +315,6 @@ export class TuiApp {
       },
       style: {
         bg: '#0f111a',
-        border: { fg: '#312e81' },
         selected: {
           bg: '#1e1b4b',
           fg: '#ffffff',
@@ -259,8 +326,8 @@ export class TuiApp {
     this.mpDetail = blessed.box({
       parent: this.marketplacesView,
       top: 0,
-      left: '46%',
-      width: '54%',
+      left: '52%',
+      width: '48%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}MARKETPLACE REPOSITORY PROVENANCE{/} ',
@@ -293,14 +360,48 @@ export class TuiApp {
       style: { bg: '#08090e' }
     });
 
-    this.instList = blessed.list({
+    this.installedContainer = blessed.box({
       parent: this.installedView,
       top: 0,
       left: 0,
-      width: '46%',
+      width: '52%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}INSTALLED CUSTOMIZATION SUITE{/} ',
+      tags: true,
+      style: {
+        bg: '#0f111a',
+        border: { fg: '#312e81' }
+      }
+    });
+
+    this.instHeader = blessed.box({
+      parent: this.installedContainer,
+      top: 0,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#121524' }
+    });
+
+    this.instDivider = blessed.box({
+      parent: this.installedContainer,
+      top: 1,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#0f111a' }
+    });
+
+    this.instList = blessed.list({
+      parent: this.installedContainer,
+      top: 2,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      border: false,
       tags: true,
       scrollable: true,
       keys: true,
@@ -313,7 +414,6 @@ export class TuiApp {
       },
       style: {
         bg: '#0f111a',
-        border: { fg: '#312e81' },
         selected: {
           bg: '#1e1b4b',
           fg: '#ffffff',
@@ -325,8 +425,8 @@ export class TuiApp {
     this.instDetail = blessed.box({
       parent: this.installedView,
       top: 0,
-      left: '46%',
-      width: '54%',
+      left: '52%',
+      width: '48%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}SYMLINK INTEGRITY & RUNTIMES{/} ',
@@ -359,14 +459,48 @@ export class TuiApp {
       style: { bg: '#08090e' }
     });
 
-    this.diagList = blessed.list({
+    this.doctorContainer = blessed.box({
       parent: this.doctorView,
       top: 0,
       left: 0,
-      width: '46%',
+      width: '52%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}SYSTEM INTEGRITY & DOCTOR GATES{/} ',
+      tags: true,
+      style: {
+        bg: '#0f111a',
+        border: { fg: '#312e81' }
+      }
+    });
+
+    this.diagHeader = blessed.box({
+      parent: this.doctorContainer,
+      top: 0,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#121524' }
+    });
+
+    this.diagDivider = blessed.box({
+      parent: this.doctorContainer,
+      top: 1,
+      left: 0,
+      right: 1,
+      height: 1,
+      tags: true,
+      style: { bg: '#0f111a' }
+    });
+
+    this.diagList = blessed.list({
+      parent: this.doctorContainer,
+      top: 2,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      border: false,
       tags: true,
       scrollable: true,
       keys: true,
@@ -379,7 +513,6 @@ export class TuiApp {
       },
       style: {
         bg: '#0f111a',
-        border: { fg: '#312e81' },
         selected: {
           bg: '#1e1b4b',
           fg: '#ffffff',
@@ -391,8 +524,8 @@ export class TuiApp {
     this.diagDetail = blessed.box({
       parent: this.doctorView,
       top: 0,
-      left: '46%',
-      width: '54%',
+      left: '52%',
+      width: '48%',
       height: '100%',
       border: { type: 'line' },
       label: ' {bold}{#818cf8-fg}ROOT CAUSE & REMEDIATION PLAN{/} ',
@@ -993,39 +1126,80 @@ export class TuiApp {
     return lines;
   }
 
-  getCategoryBadge(cat) {
+  formatCategoryTag(cat, width = 11) {
     const c = (cat || 'SKILL').toUpperCase();
-    if (c === 'DEVELOPMENT' || c === 'ORCHESTRATOR') {
-      return `{#6366f1-bg}{#ffffff-fg}{bold} ${c} {/}`;
-    }
-    if (c === 'PRODUCTIVITY' || c === 'SCAFFOLD') {
-      return `{#06b6d4-bg}{#08090e-fg}{bold} ${c} {/}`;
-    }
-    if (c === 'DESIGN' || c === 'DESIGN RULE' || c === 'ARTIFACT') {
-      return `{#f59e0b-bg}{#08090e-fg}{bold} ${c} {/}`;
-    }
-    if (c === 'PERSONA') {
-      return `{#a855f7-bg}{#ffffff-fg}{bold} ${c} {/}`;
-    }
-    return `{#334155-bg}{#cbd5e1-fg}{bold} ${c} {/}`;
+    let shortName = c;
+    let color = '#818cf8';
+
+    if (c === 'DEVELOPMENT' || c === 'DEV') { shortName = 'DEV'; color = '#818cf8'; }
+    else if (c === 'PRODUCTIVITY' || c === 'PROD') { shortName = 'PROD'; color = '#38bdf8'; }
+    else if (c === 'DESIGN' || c === 'DESIGN RULE' || c === 'ARTIFACT') { shortName = 'DESIGN'; color = '#f59e0b'; }
+    else if (c === 'PERSONA') { shortName = 'PERSONA'; color = '#c084fc'; }
+    else if (c === 'ORCHESTRATOR' || c === 'ORCH') { shortName = 'ORCH'; color = '#a78bfa'; }
+    else if (c === 'CONTENT') { shortName = 'CONTENT'; color = '#ec4899'; }
+    else if (c === 'MCP') { shortName = 'MCP'; color = '#10b981'; }
+    else if (c === 'RULE') { shortName = 'RULE'; color = '#94a3b8'; }
+    else if (c === 'SCAFFOLD') { shortName = 'SCAFFOLD'; color = '#38bdf8'; }
+    else { shortName = c.slice(0, width - 4); color = '#64748b'; }
+
+    const formatted = `[${shortName}]`;
+    const padded = formatted.padEnd(width, ' ');
+    return `{${color}-fg}${padded}{/}`;
+  }
+
+  getCategoryBadge(cat) {
+    return this.formatCategoryTag(cat, 11);
   }
 
   updateCatalogList() {
-    const listWidth = Math.floor((this.screen.width || 120) * 0.46) - 4;
+    const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
+    const showOrigin = listWidth >= 75;
+    const originW = 14;
+    const fixedW = 4 + 23 + 8 + 11 + (showOrigin ? originW : 0);
+    const descW = Math.max(10, listWidth - fixedW);
+
+    const stH = 'ST '.padEnd(4, ' ');
+    const nameH = 'NAME'.padEnd(23, ' ');
+    const verH = 'VER'.padEnd(8, ' ');
+    const catH = 'CATEGORY'.padEnd(11, ' ');
+    const descH = 'DESCRIPTION'.padEnd(descW, ' ');
+    const origH = showOrigin ? 'ORIGIN'.padEnd(originW, ' ') : '';
+
+    this.catalogHeader.setContent(`{#64748b-fg}{bold} ${stH}${nameH}${verH}${catH}${descH}${origH}{/}`);
+    
+    const stDiv = '───'.padEnd(4, ' ');
+    const nameDiv = '─────────────────────'.padEnd(23, ' ');
+    const verDiv = '───────'.padEnd(8, ' ');
+    const catDiv = '─────────'.padEnd(11, ' ');
+    const descDiv = '─'.repeat(Math.max(4, descW - 2)).padEnd(descW, ' ');
+    const origDiv = showOrigin ? '──────────────'.padEnd(originW, ' ') : '';
+    this.catalogDivider.setContent(`{#312e81-fg} ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}{/}`);
+
     const items = this.filteredPlugins.map(p => {
       const icon = p.installed ? '{#10b981-fg}✓{/}' : '{#6366f1-fg}◉{/}';
-      const badge = this.getCategoryBadge(p.category);
-      const name = p.name.length > 22 ? p.name.slice(0, 20) + '..' : p.name;
-      const mp = `{#64748b-fg}${p.marketplaceName}{/}`;
-      
-      // Calculate remaining space for snippet
-      const prefix = `${p.name}  [${p.category.toUpperCase()}]  `;
-      const suffix = `  ${p.marketplaceName}`;
-      const avail = Math.max(10, listWidth - prefix.length - suffix.length);
-      const desc = p.description ? p.description.slice(0, avail) : '';
-      const descStr = desc ? `{#94a3b8-fg}${desc}{/}` : '';
+      const stCol = ` ${icon} `.padEnd(4, ' ');
 
-      return `${icon} {bold}${name}{/} ${badge} ${descStr} ${mp}`;
+      const rawName = p.name.length > 21 ? p.name.slice(0, 19) + '..' : p.name;
+      const nameCol = rawName.padEnd(23, ' ');
+
+      const verRaw = p.version ? `v${p.version}` : 'v1.0.0';
+      const verPadded = verRaw.slice(0, 7).padEnd(8, ' ');
+      const verCol = `{#38bdf8-fg}${verPadded}{/}`;
+
+      const catCol = this.formatCategoryTag(p.category, 11);
+
+      const rawDesc = (p.description || '').replace(/[\r\n\t]+/g, ' ');
+      const descTrunc = rawDesc.length > descW - 1 ? rawDesc.slice(0, descW - 3) + '..' : rawDesc;
+      const descCol = `{#94a3b8-fg}${descTrunc.padEnd(descW, ' ')}{/}`;
+
+      if (showOrigin) {
+        const rawMp = p.marketplaceName || '';
+        const mpTrunc = rawMp.length > originW - 1 ? rawMp.slice(0, originW - 3) + '..' : rawMp;
+        const originCol = `{#64748b-fg}${mpTrunc.padEnd(originW, ' ')}{/}`;
+        return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}${originCol}`;
+      }
+
+      return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}`;
     });
 
     this.catalogList.setItems(items);
@@ -1146,17 +1320,56 @@ export class TuiApp {
 
   updateMarketplacesList() {
     const keys = Object.keys(this.marketplaces);
+    const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
+    const showOrigin = listWidth >= 80;
+    const originW = 20;
+    const nameW = 20;
+    const statusW = 14;
+    const skillsW = 10;
+    const fixedW = 2 + nameW + statusW + skillsW + (showOrigin ? originW : 0);
+    const updateW = Math.max(12, listWidth - fixedW);
+
+    const nameH = 'COLLECTION'.padEnd(nameW, ' ');
+    const statusH = 'STATUS'.padEnd(statusW, ' ');
+    const skillsH = 'SKILLS'.padEnd(skillsW, ' ');
+    const updateH = 'LAST SKILLS UPDATE'.padEnd(updateW, ' ');
+    const origH = showOrigin ? 'ORIGIN'.padEnd(originW, ' ') : '';
+
+    this.mpHeader.setContent(`{#64748b-fg}{bold}  ${nameH}${statusH}${skillsH}${updateH}${origH}{/}`);
+    
+    const nameDiv = '──────────────────'.padEnd(nameW, ' ');
+    const statusDiv = '────────────'.padEnd(statusW, ' ');
+    const skillsDiv = '────────'.padEnd(skillsW, ' ');
+    const updateDiv = '─'.repeat(Math.max(4, updateW - 2)).padEnd(updateW, ' ');
+    const origDiv = showOrigin ? '──────────────────'.padEnd(originW, ' ') : '';
+    this.mpDivider.setContent(`{#312e81-fg}  ${nameDiv}${statusDiv}${skillsDiv}${updateDiv}${origDiv}{/}`);
+
     const items = keys.map(k => {
       const mp = this.marketplaces[k];
-      const autoSync = mp.autoUpdate !== false ? '{#10b981-fg}[Auto-Sync: ON]{/}' : '{#64748b-fg}[Auto-Sync: OFF]{/}';
+      const autoSync = mp.autoUpdate !== false ? '{#10b981-fg}[Auto: ON]{/}' : '{#64748b-fg}[Auto: OFF]{/}';
+      const autoPadded = autoSync.padEnd(statusW + 10, ' ');
+
       const plugins = Registry.getPluginsForMarketplace(k);
-      const count = plugins.length;
-      const source = mp.source?.repo || mp.source || 'local';
-      const syncTime = this.formatRelativeTime(mp.lastUpdated);
+      const countStr = `${plugins.length} tools`.padEnd(skillsW, ' ');
+      const skillsCol = `{#06b6d4-fg}${countStr}{/}`;
+
+      const rawName = k.length > nameW - 2 ? k.slice(0, nameW - 4) + '..' : k;
+      const nameCol = `⛃ {bold}${rawName.padEnd(nameW - 2, ' ')}{/}`;
+
       const skillTime = this.formatRelativeTime(mp.lastSkillsUpdated || mp.commitDate || mp.lastUpdated);
       const commitTag = mp.commitSha ? ` (${mp.commitSha})` : '';
+      const updateRaw = `${skillTime}${commitTag}`;
+      const updateTrunc = updateRaw.length > updateW - 1 ? updateRaw.slice(0, updateW - 3) + '..' : updateRaw;
+      const updateCol = `{#10b981-fg}${updateTrunc.padEnd(updateW, ' ')}{/}`;
 
-      return `⛃ {bold}${k}{/} ${autoSync} {#06b6d4-fg}${count} skills{/}\n   {#94a3b8-fg}Source: https://github.com/${source}{/}\n   {#10b981-fg}Skills Updated: ${skillTime}${commitTag}{/}  {#64748b-fg}• Last Sync: ${syncTime}{/}`;
+      if (showOrigin) {
+        const source = mp.source?.repo || mp.source || 'local';
+        const sourceTrunc = source.length > originW - 1 ? source.slice(0, originW - 3) + '..' : source;
+        const origCol = `{#94a3b8-fg}${sourceTrunc.padEnd(originW, ' ')}{/}`;
+        return ` ${nameCol}${autoPadded}${skillsCol}${updateCol}${origCol}`;
+      }
+
+      return ` ${nameCol}${autoPadded}${skillsCol}${updateCol}`;
     });
 
     this.mpList.setItems(items);
@@ -1241,13 +1454,54 @@ export class TuiApp {
 
   updateInstalledList() {
     const installed = this.plugins.filter(p => p.installed);
+    const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
+    const showOrigin = listWidth >= 75;
+    const originW = 14;
+    const fixedW = 4 + 23 + 8 + 11 + (showOrigin ? originW : 0);
+    const descW = Math.max(10, listWidth - fixedW);
+
+    const stH = 'ST '.padEnd(4, ' ');
+    const nameH = 'NAME'.padEnd(23, ' ');
+    const verH = 'VER'.padEnd(8, ' ');
+    const catH = 'CATEGORY'.padEnd(11, ' ');
+    const descH = 'DESCRIPTION'.padEnd(descW, ' ');
+    const origH = showOrigin ? 'ORIGIN'.padEnd(originW, ' ') : '';
+
+    this.instHeader.setContent(`{#64748b-fg}{bold} ${stH}${nameH}${verH}${catH}${descH}${origH}{/}`);
+    
+    const stDiv = '───'.padEnd(4, ' ');
+    const nameDiv = '─────────────────────'.padEnd(23, ' ');
+    const verDiv = '───────'.padEnd(8, ' ');
+    const catDiv = '─────────'.padEnd(11, ' ');
+    const descDiv = '─'.repeat(Math.max(4, descW - 2)).padEnd(descW, ' ');
+    const origDiv = showOrigin ? '──────────────'.padEnd(originW, ' ') : '';
+    this.instDivider.setContent(`{#312e81-fg} ${stDiv}${nameDiv}${verDiv}${catDiv}${descDiv}${origDiv}{/}`);
+
     const items = installed.map(p => {
-      const badge = this.getCategoryBadge(p.category);
-      const desc = p.description 
-        ? p.description.slice(0, 52) + (p.description.length > 52 ? '...' : '') 
-        : 'Native tool capability for Antigravity.';
-      const meta = `{#10b981-fg}● Symlink Active{/}  {#475569-fg}•  v${p.version || '1.0.0'}  •  ${p.skills?.length || 1} skill(s) exposed{/}`;
-      return `{#10b981-fg}✓{/} {bold}${p.name}{/}  ${badge}  {#64748b-fg}(${p.marketplaceName}){/}\n   {#94a3b8-fg}${desc}{/}\n   ${meta}`;
+      const icon = '{#10b981-fg}✓{/}';
+      const stCol = ` ${icon} `.padEnd(4, ' ');
+
+      const rawName = p.name.length > 21 ? p.name.slice(0, 19) + '..' : p.name;
+      const nameCol = rawName.padEnd(23, ' ');
+
+      const verRaw = p.version ? `v${p.version}` : 'v1.0.0';
+      const verPadded = verRaw.slice(0, 7).padEnd(8, ' ');
+      const verCol = `{#38bdf8-fg}${verPadded}{/}`;
+
+      const catCol = this.formatCategoryTag(p.category, 11);
+
+      const rawDesc = (p.description || '').replace(/[\r\n\t]+/g, ' ');
+      const descTrunc = rawDesc.length > descW - 1 ? rawDesc.slice(0, descW - 3) + '..' : rawDesc;
+      const descCol = `{#94a3b8-fg}${descTrunc.padEnd(descW, ' ')}{/}`;
+
+      if (showOrigin) {
+        const rawMp = p.marketplaceName || '';
+        const mpTrunc = rawMp.length > originW - 1 ? rawMp.slice(0, originW - 3) + '..' : rawMp;
+        const originCol = `{#64748b-fg}${mpTrunc.padEnd(originW, ' ')}{/}`;
+        return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}${originCol}`;
+      }
+
+      return `${stCol}{bold}${nameCol}{/}${verCol}${catCol}${descCol}`;
     });
 
     this.instList.setItems(items);
@@ -1318,9 +1572,40 @@ export class TuiApp {
   }
 
   updateDoctorList() {
+    const listWidth = Math.max(40, Math.floor((this.screen.width || 120) * 0.52) - 4);
+    const fixW = 14;
+    const sevW = 10;
+    const fixedW = 4 + sevW + fixW;
+    const titleW = Math.max(15, listWidth - fixedW);
+
+    const stH = 'ST '.padEnd(4, ' ');
+    const sevH = 'SEVERITY'.padEnd(sevW, ' ');
+    const titleH = 'DIAGNOSTIC ISSUE'.padEnd(titleW, ' ');
+    const fixH = 'AUTO-FIX'.padEnd(fixW, ' ');
+
+    this.diagHeader.setContent(`{#64748b-fg}{bold} ${stH}${sevH}${titleH}${fixH}{/}`);
+    
+    const stDiv = '───'.padEnd(4, ' ');
+    const sevDiv = '────────'.padEnd(sevW, ' ');
+    const titleDiv = '─'.repeat(Math.max(4, titleW - 2)).padEnd(titleW, ' ');
+    const fixDiv = '────────────'.padEnd(fixW, ' ');
+    this.diagDivider.setContent(`{#312e81-fg} ${stDiv}${sevDiv}${titleDiv}${fixDiv}{/}`);
+
     const items = this.diagnostics.map(d => {
       const icon = d.severity === 'error' ? '{#f43f5e-fg}✕{/}' : d.severity === 'warning' ? '{#f59e0b-fg}⚠{/}' : '{#10b981-fg}✓{/}';
-      return `${icon} {bold}${d.title || d.name}{/}`;
+      const stCol = ` ${icon} `.padEnd(4, ' ');
+
+      const sevTag = d.severity === 'error' ? '{#f43f5e-fg}[ERROR]{/}' : d.severity === 'warning' ? '{#f59e0b-fg}[WARN]{/}' : '{#10b981-fg}[PASS]{/}';
+      const sevCol = sevTag.padEnd(sevW + 10, ' ');
+
+      const rawTitle = d.title || d.name || 'Diagnostic check';
+      const titleTrunc = rawTitle.length > titleW - 1 ? rawTitle.slice(0, titleW - 3) + '..' : rawTitle;
+      const titleCol = `{bold}${titleTrunc.padEnd(titleW, ' ')}{/}`;
+
+      const fixTag = d.canAutoFix ? '{#10b981-fg}Yes (Enter){/}' : '{#64748b-fg}Manual{/}';
+      const fixCol = fixTag.padEnd(fixW + 10, ' ');
+
+      return `${stCol}${sevCol}${titleCol}${fixCol}`;
     });
 
     this.diagList.setItems(items);
