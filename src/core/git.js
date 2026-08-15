@@ -103,6 +103,41 @@ export class Git {
     return this.run(['fetch', 'origin'], repoDir, 20000);
   }
 
+  static async isWorkingTreeDirty(repoDir) {
+    if (!this.isGitRepo(repoDir)) return false;
+    const res = await this.run(['status', '--porcelain'], repoDir);
+    return res.code === 0 && res.stdout.length > 0;
+  }
+
+  static async forceResetAndPull(repoDir) {
+    if (!this.isGitRepo(repoDir)) {
+      return { success: false, updated: false, message: 'Directory is not a git repository' };
+    }
+
+    const beforeSha = await this.getCommitSha(repoDir);
+    
+    // Fetch latest from origin
+    await this.run(['fetch', 'origin'], repoDir, 30000);
+    
+    // Discard local changes and reset hard to origin tracking branch
+    const resetRes = await this.run(['reset', '--hard', 'origin/HEAD'], repoDir, 20000);
+    if (resetRes.code !== 0) {
+      await this.run(['reset', '--hard', 'origin/main'], repoDir, 20000);
+    }
+    
+    // Clean untracked files and directories
+    await this.run(['clean', '-fd'], repoDir, 20000);
+
+    const afterSha = await this.getCommitSha(repoDir);
+    const updated = beforeSha !== afterSha;
+
+    return {
+      success: true,
+      updated,
+      message: updated ? `Force reset and updated from ${beforeSha} to ${afterSha}` : 'Force reset to latest origin/main',
+    };
+  }
+
   static async pullFastForward(repoDir) {
     if (!this.isGitRepo(repoDir)) {
       return { success: false, updated: false, message: 'Directory is not a git repository' };

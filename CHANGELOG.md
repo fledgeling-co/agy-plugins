@@ -2,6 +2,16 @@
 
 All notable changes to `agy-plugins` are documented in this file.
 
+## [1.2.1] - 2026-08-15
+
+### Added
+- **Force Reset and Pull Action**: Added a dedicated Force Reset and Sync keybinding (`f`) in the Marketplaces tab and direct `Git.forceResetAndPull` recovery in the core sync engine to discard dirty working tree states and fast-forward cleanly against remote tracking branches.
+- **Dirty Working Tree Diagnostic and Auto-Repair**: Added proactive Doctor diagnostics detecting uncommitted marketplace modifications and broken git states with one-click automatic resolution (`Enter` or `a`).
+- **Dual Manifest Recognition**: Extended discovery and health checks to natively recognise `.claude-plugin/plugin.json` alongside root `plugin.json` without modifying upstream repository trees unnecessarily.
+
+### Fixed
+- Fixed git merge pull abort errors during background sync when local frontmatter normalisations or manifest markers were authored into marketplace clones.
+
 ## [1.2.0] - 2026-08-14
 
 ### Added

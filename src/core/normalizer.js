@@ -264,22 +264,14 @@ export class Normalizer {
   static ensureCompliantManifest(pluginDir, pluginName) {
     if (!fs.existsSync(pluginDir)) return;
     const targetJson = path.join(pluginDir, 'plugin.json');
-    if (!fs.existsSync(targetJson)) {
-      const claudeJson = path.join(pluginDir, '.claude-plugin', 'plugin.json');
-      let manifest = { name: pluginName };
-      if (fs.existsSync(claudeJson)) {
-        try {
-          const parsed = JSON.parse(fs.readFileSync(claudeJson, 'utf8'));
-          manifest = {
-            name: parsed.name || pluginName,
-            version: parsed.version || '1.0.0',
-            description: parsed.description || '',
-            category: parsed.category || 'development',
-          };
-        } catch {
-          // ignore
-        }
-      }
+    const claudeJson = path.join(pluginDir, '.claude-plugin', 'plugin.json');
+    if (!fs.existsSync(targetJson) && !fs.existsSync(claudeJson)) {
+      const manifest = {
+        name: pluginName,
+        version: '1.0.0',
+        description: '',
+        category: 'development',
+      };
       fs.writeFileSync(targetJson, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
     }
   }

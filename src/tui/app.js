@@ -564,6 +564,12 @@ export class TuiApp {
       if (mp) await this.syncSingleMarketplace(mp);
     });
 
+    this.mpList.key(['f'], async () => {
+      const mpKeys = Object.keys(this.marketplaces);
+      const mp = mpKeys[this.selectedMpIndex];
+      if (mp) await this.forceSyncSingleMarketplace(mp);
+    });
+
     this.mpList.key(['a'], () => {
       this.openAddMarketplaceModal();
     });
@@ -833,7 +839,7 @@ export class TuiApp {
     if (this.currentTab === 'catalog') {
       help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/i]{/} {#cbd5e1-fg}Toggle Install{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Pull Updates{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'marketplaces') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space]{/} {#cbd5e1-fg}Toggle Auto-Sync{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add Market{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space]{/} {#cbd5e1-fg}Auto-Sync{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f59e0b-fg}[f]{/} {#cbd5e1-fg}Force Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
     } else if (this.currentTab === 'installed') {
       help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#f43f5e-fg}[Space/d]{/} {#cbd5e1-fg}Uninstall Plugin{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'doctor') {
@@ -1024,7 +1030,7 @@ export class TuiApp {
     content += ` {#64748b-fg}Remote Repository: https://github.com/${source}{/}\n\n`;
 
     // Action Buttons
-    content += ` {#06b6d4-bg}{#08090e-fg}{bold}  [ Space ] Toggle Auto-Sync  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ u ] Sync Now  {/}   {#f43f5e-bg}{#ffffff-fg}{bold}  [ d ] Remove  {/}\n\n`;
+    content += ` {#06b6d4-bg}{#08090e-fg}{bold}  [ Space ] Auto-Sync  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ u ] Pull Fast-Forward  {/}   {#d97706-bg}{#ffffff-fg}{bold}  [ f ] Force Reset & Sync  {/}   {#f43f5e-bg}{#ffffff-fg}{bold}  [ d ] Remove  {/}\n\n`;
 
     // 2x2 Metric Grid Cards
     const cloneVal = `~/.gemini/plugins/...`.padEnd(28, ' ');
@@ -1178,6 +1184,16 @@ export class TuiApp {
 
     this.showToast(`Syncing ${name}...`);
     const res = await SyncEngine.syncMarketplace(entry);
+    this.showToast(res.message);
+    this.refreshData();
+  }
+
+  async forceSyncSingleMarketplace(name) {
+    const entry = this.marketplaces[name];
+    if (!entry) return;
+
+    this.showToast(`Force-syncing & resetting ${name}...`);
+    const res = await SyncEngine.forceSyncMarketplace(entry);
     this.showToast(res.message);
     this.refreshData();
   }

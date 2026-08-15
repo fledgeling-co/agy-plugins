@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { Paths } from './paths.js';
 import { Registry } from './registry.js';
 import { Normalizer } from './normalizer.js';
@@ -38,12 +39,13 @@ export class Doctor {
 
           if (fs.statSync(targetDir).isDirectory()) {
             const manifestPath = path.join(targetDir, 'plugin.json');
-            if (!fs.existsSync(manifestPath)) {
+            const claudeManifest = path.join(targetDir, '.claude-plugin', 'plugin.json');
+            if (!fs.existsSync(manifestPath) && !fs.existsSync(claudeManifest)) {
               diagnostics.push({
                 id: `missing-manifest-${entry}`,
                 severity: 'warning',
                 title: `Missing plugin.json: ${entry}`,
-                message: `Plugin directory lacks top-level plugin.json required by Antigravity CLI.`,
+                message: `Plugin directory lacks plugin.json or .claude-plugin/plugin.json manifest.`,
                 remediation: `Generate standard plugin.json marker.`,
                 canAutoFix: true,
                 autoFixAction: 'fix_manifest',
@@ -105,6 +107,34 @@ export class Doctor {
       }
     }
 
+    // 3. Check for dirty marketplace working trees that block git pulls
+    const marketplaces = Registry.getMarketplaces();
+    for (const [mpName, mp] of Object.entries(marketplaces)) {
+      if (fs.existsSync(mp.installLocation) && fs.existsSync(path.join(mp.installLocation, '.git'))) {
+        try {
+          const stdout = execFileSync('git', ['status', '--porcelain'], {
+            cwd: mp.installLocation,
+            encoding: 'utf8',
+            timeout: 5000,
+          }).trim();
+          if (stdout.length > 0) {
+            diagnostics.push({
+              id: `dirty-marketplace-${mpName}`,
+              severity: 'warning',
+              title: `Marketplace Working Tree Modified: ${mpName}`,
+              message: `Local modifications in ${mp.installLocation} prevent clean git pulls and fast-forward updates.`,
+              remediation: `Force-reset and clean marketplace clone to match origin tracking branch.`,
+              canAutoFix: true,
+              autoFixAction: 'reset_marketplace_clean',
+              targetPath: mp.installLocation,
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     return diagnostics;
   }
 
@@ -123,6 +153,17 @@ export class Doctor {
         const pluginName = path.basename(diagnostic.targetPath);
         Normalizer.ensureCompliantManifest(diagnostic.targetPath, pluginName);
         return { success: true, message: `Created compliant plugin.json for ${pluginName}` };
+      }
+
+      if (diagnostic.autoFixAction === 'reset_marketplace_clean') {
+        execFileSync('git', ['fetch', 'origin'], { cwd: diagnostic.targetPath, timeout: 20000 });
+        try {
+          execFileSync('git', ['reset', '--hard', 'origin/HEAD'], { cwd: diagnostic.targetPath, timeout: 10000 });
+        } catch {
+          execFileSync('git', ['reset', '--hard', 'origin/main'], { cwd: diagnostic.targetPath, timeout: 10000 });
+        }
+        execFileSync('git', ['clean', '-fd'], { cwd: diagnostic.targetPath, timeout: 10000 });
+        return { success: true, message: `Cleaned and reset marketplace working tree: ${path.basename(diagnostic.targetPath)}` };
       }
 
       return { success: false, message: 'Unknown fix action' };

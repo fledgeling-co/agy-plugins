@@ -4,7 +4,7 @@ import { Registry } from './registry.js';
 import { Normalizer } from './normalizer.js';
 
 export class SyncEngine {
-  static async syncMarketplace(entry) {
+  static async syncMarketplace(entry, { force = false } = {}) {
     if (!fs.existsSync(entry.installLocation)) {
       if (entry.source?.source === 'github' || entry.source?.source === 'git') {
         const repoUrl = entry.source.url || (entry.source.repo ? `https://github.com/${entry.source.repo}.git` : '');
@@ -55,7 +55,10 @@ export class SyncEngine {
       };
     }
 
-    const pullRes = await Git.pullFastForward(entry.installLocation);
+    const pullRes = force 
+      ? await Git.forceResetAndPull(entry.installLocation)
+      : await Git.pullFastForward(entry.installLocation);
+
     if (pullRes.success) {
       entry.lastUpdated = new Date().toISOString();
       entry.commitSha = await Git.getCommitSha(entry.installLocation);
@@ -65,6 +68,13 @@ export class SyncEngine {
 
       // Auto-heal manifests for all skills in pulled marketplace
       Normalizer.discoverPluginsInMarketplace(entry.name, entry.installLocation);
+    } else if (!force && (pullRes.message.includes('overwritten by merge') || pullRes.message.includes('local changes') || pullRes.message.includes('Your local changes'))) {
+      return {
+        marketplace: entry.name,
+        success: false,
+        updated: false,
+        message: 'Local modifications detected. Press [f] to force reset & sync from remote.',
+      };
     }
 
     return {
@@ -75,13 +85,17 @@ export class SyncEngine {
     };
   }
 
-  static async syncAll(forceAll = false) {
+  static async forceSyncMarketplace(entry) {
+    return this.syncMarketplace(entry, { force: true });
+  }
+
+  static async syncAll(forceAll = false, forceReset = false) {
     const marketplaces = Registry.getMarketplaces();
     const results = [];
 
     for (const entry of Object.values(marketplaces)) {
       if (forceAll || entry.autoUpdate) {
-        const res = await this.syncMarketplace(entry);
+        const res = await this.syncMarketplace(entry, { force: forceReset });
         results.push(res);
       }
     }
