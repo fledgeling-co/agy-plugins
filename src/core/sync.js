@@ -12,7 +12,16 @@ export class SyncEngine {
           const cloneRes = await Git.cloneSparse(repoUrl, entry.installLocation);
           if (cloneRes.success) {
             entry.lastUpdated = new Date().toISOString();
-            entry.commitSha = await Git.getCommitSha(entry.installLocation);
+            const commitInfo = await Git.getLatestCommitInfo(entry.installLocation);
+            if (commitInfo) {
+              entry.commitSha = commitInfo.sha;
+              entry.commitDate = commitInfo.date;
+              entry.commitSubject = commitInfo.subject;
+              entry.lastSkillsUpdated = commitInfo.date || entry.lastUpdated;
+            } else {
+              entry.commitSha = await Git.getCommitSha(entry.installLocation);
+              entry.lastSkillsUpdated = entry.lastUpdated;
+            }
             const mps = Registry.getMarketplaces();
             mps[entry.name] = entry;
             Registry.saveMarketplaces(mps);
@@ -47,6 +56,18 @@ export class SyncEngine {
 
     if (!Git.isGitRepo(entry.installLocation)) {
       Normalizer.discoverPluginsInMarketplace(entry.name, entry.installLocation);
+      entry.lastUpdated = new Date().toISOString();
+      if (!entry.lastSkillsUpdated) {
+        try {
+          const stat = fs.statSync(entry.installLocation);
+          entry.lastSkillsUpdated = stat.mtime.toISOString();
+        } catch {
+          entry.lastSkillsUpdated = entry.lastUpdated;
+        }
+        const mps = Registry.getMarketplaces();
+        mps[entry.name] = entry;
+        Registry.saveMarketplaces(mps);
+      }
       return {
         marketplace: entry.name,
         success: true,
@@ -61,7 +82,20 @@ export class SyncEngine {
 
     if (pullRes.success) {
       entry.lastUpdated = new Date().toISOString();
-      entry.commitSha = await Git.getCommitSha(entry.installLocation);
+      const commitInfo = await Git.getLatestCommitInfo(entry.installLocation);
+      if (commitInfo) {
+        entry.commitSha = commitInfo.sha;
+        entry.commitDate = commitInfo.date;
+        entry.commitSubject = commitInfo.subject;
+        if (pullRes.updated || !entry.lastSkillsUpdated) {
+          entry.lastSkillsUpdated = commitInfo.date || entry.lastUpdated;
+        }
+      } else {
+        entry.commitSha = await Git.getCommitSha(entry.installLocation);
+        if (pullRes.updated || !entry.lastSkillsUpdated) {
+          entry.lastSkillsUpdated = entry.lastUpdated;
+        }
+      }
       const mps = Registry.getMarketplaces();
       mps[entry.name] = entry;
       Registry.saveMarketplaces(mps);

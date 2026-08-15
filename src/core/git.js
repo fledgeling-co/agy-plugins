@@ -38,6 +38,21 @@ export class Git {
     return res.code === 0 ? res.stdout : '';
   }
 
+  static async getLatestCommitInfo(dir) {
+    if (!this.isGitRepo(dir)) return null;
+    const res = await this.run(['log', '-1', '--format=%h|%cI|%s', 'HEAD'], dir);
+    if (res.code === 0 && res.stdout) {
+      const [sha, isoDate, ...subjectParts] = res.stdout.split('|');
+      return {
+        sha: sha || '',
+        shortSha: sha || '',
+        date: isoDate || '',
+        subject: subjectParts.join('|') || '',
+      };
+    }
+    return null;
+  }
+
   static async getRemoteUrl(dir) {
     if (!this.isGitRepo(dir)) return '';
     const res = await this.run(['config', '--get', 'remote.origin.url'], dir);

@@ -19,6 +19,7 @@ export class Normalizer {
     const rawYaml = trimmed.slice(3, endIndex).trim();
     const lines = rawYaml.split('\n');
     let name = '';
+    let version = '';
     let description = '';
     let readingDesc = false;
 
@@ -26,6 +27,9 @@ export class Normalizer {
       const trimmedLine = line.trim();
       if (trimmedLine.startsWith('name:')) {
         name = trimmedLine.replace('name:', '').trim().replace(/^['"]|['"]$/g, '');
+        readingDesc = false;
+      } else if (trimmedLine.startsWith('version:')) {
+        version = trimmedLine.replace('version:', '').trim().replace(/^['"]|['"]$/g, '');
         readingDesc = false;
       } else if (trimmedLine.startsWith('description:')) {
         const afterColon = trimmedLine.replace('description:', '').trim();
@@ -46,7 +50,7 @@ export class Normalizer {
     }
 
     const tokenFootprint = Math.ceil(rawYaml.length / 4);
-    return { name, description, rawYaml, tokenFootprint };
+    return { name, version, description, rawYaml, tokenFootprint };
   }
 
   /**
@@ -171,6 +175,7 @@ export class Normalizer {
           const frontmatter = this.parseSkillFrontmatter(content);
           skills.push({
             name: frontmatter.name || sEntry,
+            version: frontmatter.version || version,
             description: frontmatter.description || '',
             path: skillMd,
             tokenFootprint: frontmatter.tokenFootprint,
@@ -188,6 +193,7 @@ export class Normalizer {
         const frontmatter = this.parseSkillFrontmatter(content);
         skills.push({
           name: frontmatter.name || name,
+          version: frontmatter.version || version,
           description: frontmatter.description || '',
           path: rootSkillMd,
           tokenFootprint: frontmatter.tokenFootprint,

@@ -2,6 +2,21 @@
 
 All notable changes to `agy-plugins` are documented in this file.
 
+## [1.3.0] - 2026-08-15
+
+### Added
+- **Plugin and Skill Version Visibility**: Surfaced granular plugin and skill versions across the Explore, Marketplaces, and Installed tabs in the TUI, the CLI inspect commands, and FastMCP tool outputs. Individual skill versions parsed from `SKILL.md` frontmatter are now tracked alongside parent plugin package versions.
+- **Changelog Engine and Discovery**: Added full changelog discovery capable of reading plugin-level `CHANGELOG.md` files as well as filtering plugin-specific release notes from marketplace-level changelogs.
+- **Scrollable TUI Changelog Modal**: Added a dedicated TrueColor changelog modal window opened via the `c` hotkey or inspector prompt across all tabs, rendering structured release notes, semantic version tags, and commit summaries with keyboard and mouse scroll support.
+- **CLI Changelog and Inspection Commands**: Added `agy-plugins changelog <plugin/marketplace>` and enhanced `agy-plugins info <plugin>` to output full version breakdowns, exposed tool lists, and formatted release history directly to the terminal.
+- **Local Marketplace Skill Update Timestamps**: Tracked local git commit author dates, short commit hashes, and commit subjects during clone, sync, and pull operations, displaying exact local update timings alongside background sync check intervals.
+- **FastMCP Changelog Tools**: Added `plugin_changelog` and `marketplace_changelog` tools to the stdio MCP server for agentic consumption.
+
+### Changed
+- Refactored right-hand inspector cards in the TUI to prominently display exposed skill breakdowns with per-skill version pills and recent changelog highlights.
+- Enhanced Marketplaces view with commit hash badges, local skill update timestamps, and latest commit subject previews.
+- Expanded acceptance test suite to 40 tests across 9 suites covering changelog resolution, skill version normalisation, and git commit extraction.
+
 ## [1.2.2] - 2026-08-15
 
 ### Added

@@ -4,6 +4,7 @@ import { Installer } from '../core/installer.js';
 import { SyncEngine } from '../core/sync.js';
 import { Doctor } from '../core/doctor.js';
 import { Git } from '../core/git.js';
+import { ChangelogEngine } from '../core/changelog.js';
 
 export class McpServer {
   static autoSyncTimer = null;
@@ -201,6 +202,29 @@ export class McpServer {
                 },
               },
             },
+            {
+              name: 'plugin_changelog',
+              description: 'Get release notes and changelog history for a specific plugin.',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  pluginName: { type: 'string', description: 'Name of the plugin.' },
+                  marketplaceName: { type: 'string', description: 'Optional marketplace name.' },
+                },
+                required: ['pluginName'],
+              },
+            },
+            {
+              name: 'marketplace_changelog',
+              description: 'Get release notes and changelog history for a registered marketplace.',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  marketplaceName: { type: 'string', description: 'Name of the marketplace.' },
+                },
+                required: ['marketplaceName'],
+              },
+            },
           ],
         },
       };
@@ -314,6 +338,14 @@ export class McpServer {
           }
         }
         return { diagnostics: diags, fixed };
+      }
+
+      case 'plugin_changelog': {
+        return ChangelogEngine.getPluginChangelog(args.pluginName, args.marketplaceName || '');
+      }
+
+      case 'marketplace_changelog': {
+        return ChangelogEngine.getMarketplaceChangelog(args.marketplaceName);
       }
 
       default:

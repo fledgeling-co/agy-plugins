@@ -3,6 +3,7 @@ import { Registry } from '../core/registry.js';
 import { Installer } from '../core/installer.js';
 import { SyncEngine } from '../core/sync.js';
 import { Doctor } from '../core/doctor.js';
+import { ChangelogEngine } from '../core/changelog.js';
 
 export class TuiApp {
   constructor() {
@@ -486,6 +487,57 @@ export class TuiApp {
         focus: { border: { fg: '#a855f7' } }
       }
     });
+
+    // 6. Release History & Changelog Modal
+    this.changelogModal = blessed.box({
+      parent: this.screen,
+      top: 'center',
+      left: 'center',
+      width: '84%',
+      height: '80%',
+      border: { type: 'line' },
+      label: ' {bold}{#38bdf8-fg} ✦ Release History & Changelog {/} ',
+      tags: true,
+      hidden: true,
+      style: {
+        bg: '#0f111a',
+        border: { fg: '#38bdf8' }
+      }
+    });
+
+    this.changelogContent = blessed.box({
+      parent: this.changelogModal,
+      top: 1,
+      left: 2,
+      right: 2,
+      bottom: 2,
+      tags: true,
+      scrollable: true,
+      mouse: true,
+      keys: true,
+      vi: true,
+      alwaysScroll: true,
+      scrollbar: {
+        ch: '│',
+        style: { bg: '#6366f1', fg: '#6366f1' }
+      },
+      style: {
+        bg: '#0f111a'
+      }
+    });
+
+    this.changelogFooter = blessed.box({
+      parent: this.changelogModal,
+      bottom: 0,
+      left: 2,
+      right: 2,
+      height: 1,
+      tags: true,
+      content: '{#64748b-fg}[ Esc / c / q ] Close Modal    [ ↑ / ↓ / PageUp / PageDown ] Scroll{/}',
+      style: {
+        bg: '#0f111a'
+      }
+    });
   }
 
   bindEvents() {
@@ -508,6 +560,19 @@ export class TuiApp {
     // Search Hotkey
     this.screen.key(['/', 'C-k'], () => {
       this.openSearchModal();
+    });
+
+    // Changelog Hotkey
+    this.screen.key(['c'], () => {
+      this.openChangelogModal();
+    });
+
+    // Changelog Modal Close Handlers
+    this.changelogModal.key(['escape', 'q'], () => {
+      this.closeChangelogModal();
+    });
+    this.changelogContent.key(['escape', 'q'], () => {
+      this.closeChangelogModal();
     });
 
     // Screen resize event
@@ -723,6 +788,57 @@ export class TuiApp {
     this.screen.render();
   }
 
+  openChangelogModal() {
+    if (this.currentTab === 'marketplaces') {
+      const keys = Object.keys(this.marketplaces);
+      const k = keys[this.selectedMpIndex];
+      if (!k) return;
+
+      const data = ChangelogEngine.getMarketplaceChangelog(k);
+      this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Marketplace Release History: ${k} {/} `);
+      this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+    } else if (this.currentTab === 'installed') {
+      const installed = this.plugins.filter(p => p.installed);
+      const p = installed[this.selectedInstIndex];
+      if (!p) return;
+
+      const data = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
+      this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Plugin Release History: ${p.name} (v${p.version || '1.0.0'}) {/} `);
+      this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+    } else {
+      const p = this.filteredPlugins[this.selectedIndex];
+      if (!p) return;
+
+      const data = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
+      this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Plugin Release History: ${p.name} (v${p.version || '1.0.0'}) {/} `);
+      this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+    }
+
+    this.changelogContent.scrollTo(0);
+    this.changelogModal.show();
+    this.changelogContent.focus();
+    this.screen.render();
+  }
+
+  closeChangelogModal() {
+    this.changelogModal.hide();
+    this.getCurrentList().focus();
+    this.screen.render();
+  }
+
+  formatRelativeTime(isoString) {
+    if (!isoString) return 'never';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return isoString;
+    const now = new Date();
+    const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diffSec < 45) return 'just now';
+    if (diffSec < 90) return '1m ago';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+    return date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+
   showToast(msg) {
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastMessage = msg;
@@ -837,11 +953,11 @@ export class TuiApp {
     const width = this.screen.width || 120;
     let help = '';
     if (this.currentTab === 'catalog') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/i]{/} {#cbd5e1-fg}Toggle Install{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Pull Updates{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/i]{/} {#cbd5e1-fg}Toggle Install{/}   {#38bdf8-fg}[c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Pull Updates{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'marketplaces') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space]{/} {#cbd5e1-fg}Auto-Sync{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f59e0b-fg}[f]{/} {#cbd5e1-fg}Force Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space]{/} {#cbd5e1-fg}Auto-Sync{/}   {#38bdf8-fg}[c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f59e0b-fg}[f]{/} {#cbd5e1-fg}Force Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
     } else if (this.currentTab === 'installed') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#f43f5e-fg}[Space/d]{/} {#cbd5e1-fg}Uninstall Plugin{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#f43f5e-fg}[Space/d]{/} {#cbd5e1-fg}Uninstall Plugin{/}   {#38bdf8-fg}[c]{/} {#cbd5e1-fg}Changelog{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'doctor') {
       help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Enter]{/} {#cbd5e1-fg}Auto-Fix Issue{/}   {#10b981-fg}[a]{/} {#cbd5e1-fg}Fix All Issues{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     }
@@ -931,58 +1047,91 @@ export class TuiApp {
 
     // Header Card (Large title with version badge)
     let content = `\n {bold}{#ffffff-fg}${p.name}{/} {#06b6d4-bg}{#08090e-fg}{bold} v${p.version || '1.0.0'} {/}\n`;
-    content += ` {#64748b-fg}⛃ ${origin}          Commit: {#94a3b8-fg}active-cone{/}\n\n`;
+    content += ` {#64748b-fg}⛃ ${origin}          Marketplace: {#94a3b8-fg}${p.marketplaceName}{/}\n\n`;
 
-    // Top Live Action Buttons (Right under title, matching mock!)
+    // Top Live Action Buttons
     const actionBtn = p.installed 
       ? '{#f43f5e-bg}{#ffffff-fg}{bold}  ✕ Uninstall from AGY  {/}' 
       : '{#10b981-bg}{#ffffff-fg}{bold}  ✓ Install to AGY  {/}';
     const syncBtn = '{#312e81-bg}{#ffffff-fg}{bold}  ↻ Sparse Sync  {/}';
-    content += ` ${actionBtn}    ${syncBtn}\n\n`;
+    const logBtn = '{#38bdf8-bg}{#08090e-fg}{bold}  ✦ [ c ] Changelog  {/}';
+    content += ` ${actionBtn}    ${syncBtn}    ${logBtn}\n\n`;
 
-    // 1. Activation Trigger Card (Rounded border styling)
+    // 1. Activation Trigger Card & Exposed Skills (With individual skill versions)
     const cardW = 60;
     const innerW = cardW - 2;
-    content += ` {bold}{#a855f7-fg}✦ ACTIVATION TRIGGER PHRASE (LEVEL 1 FRONTMATTER){/}\n`;
+    content += ` {bold}{#a855f7-fg}✦ ACTIVATION TRIGGERS & EXPOSED SKILLS (${p.skills?.length || 1}){/}\n`;
     content += ` {#312e81-fg}╭${'─'.repeat(innerW)}╮{/}\n`;
-    const wrappedIntent = this.wrapLines(`"${p.description || 'Native tool capability for Antigravity.'}"`, innerW - 2);
-    const visibleLines = wrappedIntent.slice(0, 4);
-    if (wrappedIntent.length > 4) {
-      visibleLines[3] = visibleLines[3].slice(0, innerW - 6) + '...';
-    }
-    for (const line of visibleLines) {
-      const padded = line.padEnd(innerW - 2, ' ');
-      content += ` {#312e81-fg}│{/} {#cbd5e1-fg} ${padded} {/} {#312e81-fg}│{/}\n`;
+    if (p.skills && p.skills.length > 0) {
+      for (const s of p.skills.slice(0, 3)) {
+        const sVer = s.version ? `v${s.version}` : `v${p.version || '1.0.0'}`;
+        const sLine = `✦ ${s.name} [${sVer}] (~${s.tokenFootprint || 110} tok)`.slice(0, innerW - 2).padEnd(innerW - 2, ' ');
+        content += ` {#312e81-fg}│{/} {#ffffff-fg} ${sLine} {/} {#312e81-fg}│{/}\n`;
+        const wrappedDesc = this.wrapLines(s.description || 'Native tool capability for Antigravity.', innerW - 4);
+        for (const dl of wrappedDesc.slice(0, 2)) {
+          const pDl = dl.padEnd(innerW - 2, ' ');
+          content += ` {#312e81-fg}│{/} {#94a3b8-fg}   ${pDl} {/} {#312e81-fg}│{/}\n`;
+        }
+      }
+      if (p.skills.length > 3) {
+        const more = `... and ${p.skills.length - 3} more skill(s) exposed in bundle`.padEnd(innerW - 2, ' ');
+        content += ` {#312e81-fg}│{/} {#64748b-fg} ${more} {/} {#312e81-fg}│{/}\n`;
+      }
+    } else {
+      const wrappedIntent = this.wrapLines(`"${p.description || 'Native tool capability for Antigravity.'}"`, innerW - 2);
+      for (const line of wrappedIntent.slice(0, 3)) {
+        const padded = line.padEnd(innerW - 2, ' ');
+        content += ` {#312e81-fg}│{/} {#cbd5e1-fg} ${padded} {/} {#312e81-fg}│{/}\n`;
+      }
     }
     content += ` {#312e81-fg}╰${'─'.repeat(innerW)}╯{/}\n\n`;
 
-    // 2. 2x2 Metric Grid Cards (Matching mock-tui.html!)
+    // 2. 2x2 Metric Grid Cards
     const tileW = 28;
     const tileInner = tileW - 2;
     const topBar = `╭${'─'.repeat(tileInner)}╮  ╭${'─'.repeat(tileInner)}╮`;
     const botBar = `╰${'─'.repeat(tileInner)}╯  ╰${'─'.repeat(tileInner)}╯`;
 
     const tokVal = `~${p.tokenFootprint || 110} tok (Discovery)`.slice(0, tileInner - 2).padEnd(tileInner - 2, ' ');
-    const schemaVal = `✓ AgentSkills.io v1`.slice(0, tileInner - 2).padEnd(tileInner - 2, ' ');
+    const verVal = `Plugin v${p.version || '1.0.0'} (${p.skills?.length || 1} skills)`.slice(0, tileInner - 2).padEnd(tileInner - 2, ' ');
     const targetVal = `~/.gemini/config/plugins`.slice(0, tileInner - 2).padEnd(tileInner - 2, ' ');
-    const gitVal = `Sparse Cone Mode`.slice(0, tileInner - 2).padEnd(tileInner - 2, ' ');
+    const originVal = `${p.marketplaceName}`.slice(0, tileInner - 2).padEnd(tileInner - 2, ' ');
 
     const lbl1 = 'TOKEN FOOTPRINT'.padEnd(tileInner - 2, ' ');
-    const lbl2 = 'SCHEMA COMPLIANCE'.padEnd(tileInner - 2, ' ');
+    const lbl2 = 'VERSIONS & SKILLS'.padEnd(tileInner - 2, ' ');
     const lbl3 = 'TARGET DISCOVERY'.padEnd(tileInner - 2, ' ');
-    const lbl4 = 'GIT SYNC STRATEGY'.padEnd(tileInner - 2, ' ');
+    const lbl4 = 'COLLECTION ORIGIN'.padEnd(tileInner - 2, ' ');
 
     content += ` {#312e81-fg}${topBar}{/}\n`;
     content += ` {#312e81-fg}│{/} {#64748b-fg} ${lbl1} {/} {#312e81-fg}│  │{/} {#64748b-fg} ${lbl2} {/} {#312e81-fg}│{/}\n`;
-    content += ` {#312e81-fg}│{/} {#ffffff-fg} ${tokVal} {/} {#312e81-fg}│  │{/} {#10b981-fg} ${schemaVal} {/} {#312e81-fg}│{/}\n`;
+    content += ` {#312e81-fg}│{/} {#ffffff-fg} ${tokVal} {/} {#312e81-fg}│  │{/} {#10b981-fg} ${verVal} {/} {#312e81-fg}│{/}\n`;
     content += ` {#312e81-fg}${botBar}{/}\n`;
 
     content += ` {#312e81-fg}${topBar}{/}\n`;
     content += ` {#312e81-fg}│{/} {#64748b-fg} ${lbl3} {/} {#312e81-fg}│  │{/} {#64748b-fg} ${lbl4} {/} {#312e81-fg}│{/}\n`;
-    content += ` {#312e81-fg}│{/} {#06b6d4-fg} ${targetVal} {/} {#312e81-fg}│  │{/} {#cbd5e1-fg} ${gitVal} {/} {#312e81-fg}│{/}\n`;
+    content += ` {#312e81-fg}│{/} {#06b6d4-fg} ${targetVal} {/} {#312e81-fg}│  │{/} {#cbd5e1-fg} ${originVal} {/} {#312e81-fg}│{/}\n`;
     content += ` {#312e81-fg}${botBar}{/}\n\n`;
 
-    // 3. Ingestion Staging Path Card
+    // 3. Recent Release Notes & Changelog Card
+    const changelog = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
+    content += ` {bold}{#38bdf8-fg}✦ RECENT RELEASE HIGHLIGHTS (CHANGELOG){/}   {#38bdf8-fg}[ c ] Full View{/}\n`;
+    content += ` {#312e81-fg}╭${'─'.repeat(innerW)}╮{/}\n`;
+    if (changelog.found && changelog.sections.length > 0) {
+      const latest = changelog.sections[0];
+      const headingLine = `Release: ${latest.heading}`.slice(0, innerW - 2).padEnd(innerW - 2, ' ');
+      content += ` {#312e81-fg}│{/} {#06b6d4-fg} ${headingLine} {/} {#312e81-fg}│{/}\n`;
+      const bodySnippet = latest.body.split('\n').filter(l => l.trim().length > 0).slice(0, 2);
+      for (const bl of bodySnippet) {
+        const cleanBl = bl.replace(/^[-*]\s+/, '• ').slice(0, innerW - 2).padEnd(innerW - 2, ' ');
+        content += ` {#312e81-fg}│{/} {#cbd5e1-fg} ${cleanBl} {/} {#312e81-fg}│{/}\n`;
+      }
+    } else {
+      const noLog = 'No local CHANGELOG.md entries found.'.padEnd(innerW - 2, ' ');
+      content += ` {#312e81-fg}│{/} {#64748b-fg} ${noLog} {/} {#312e81-fg}│{/}\n`;
+    }
+    content += ` {#312e81-fg}╰${'─'.repeat(innerW)}╯{/}\n\n`;
+
+    // 4. Ingestion Staging Path Card
     content += ` {bold}{#64748b-fg}INGESTION STAGING PATH{/}\n`;
     content += ` {#312e81-fg}╭${'─'.repeat(innerW)}╮{/}\n`;
     const symlinkStr = `Symlink: ~/.gemini/config/plugins/${p.name}`.slice(0, innerW - 2).padEnd(innerW - 2, ' ');
@@ -1003,7 +1152,11 @@ export class TuiApp {
       const plugins = Registry.getPluginsForMarketplace(k);
       const count = plugins.length;
       const source = mp.source?.repo || mp.source || 'local';
-      return `⛃ {bold}${k}{/} ${autoSync} {#06b6d4-fg}${count} skills{/}\n   {#94a3b8-fg}Source: https://github.com/${source}{/}\n   {#475569-fg}Cone Active  •  ~/.gemini/plugins/marketplaces/${k}{/}`;
+      const syncTime = this.formatRelativeTime(mp.lastUpdated);
+      const skillTime = this.formatRelativeTime(mp.lastSkillsUpdated || mp.commitDate || mp.lastUpdated);
+      const commitTag = mp.commitSha ? ` (${mp.commitSha})` : '';
+
+      return `⛃ {bold}${k}{/} ${autoSync} {#06b6d4-fg}${count} skills{/}\n   {#94a3b8-fg}Source: https://github.com/${source}{/}\n   {#10b981-fg}Skills Updated: ${skillTime}${commitTag}{/}  {#64748b-fg}• Last Sync: ${syncTime}{/}`;
     });
 
     this.mpList.setItems(items);
@@ -1025,34 +1178,59 @@ export class TuiApp {
     const source = mp.source?.repo || mp.source || 'local';
     const autoSync = mp.autoUpdate !== false ? '{#10b981-fg}ENABLED (Continuous 60s){/}' : '{#f59e0b-fg}PAUSED (Manual Only){/}';
     const plugins = Registry.getPluginsForMarketplace(k);
+    const syncTimeStr = this.formatRelativeTime(mp.lastUpdated);
+    const skillsTimeStr = this.formatRelativeTime(mp.lastSkillsUpdated || mp.commitDate || mp.lastUpdated);
+    const commitTag = mp.commitSha ? ` (${mp.commitSha})` : '';
 
     let content = `\n {bold}{#ffffff-fg}${k}{/} {#06b6d4-bg}{#08090e-fg}{bold} MARKETPLACE {/}\n`;
     content += ` {#64748b-fg}Remote Repository: https://github.com/${source}{/}\n\n`;
 
     // Action Buttons
-    content += ` {#06b6d4-bg}{#08090e-fg}{bold}  [ Space ] Auto-Sync  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ u ] Pull Fast-Forward  {/}   {#d97706-bg}{#ffffff-fg}{bold}  [ f ] Force Reset & Sync  {/}   {#f43f5e-bg}{#ffffff-fg}{bold}  [ d ] Remove  {/}\n\n`;
+    content += ` {#06b6d4-bg}{#08090e-fg}{bold}  [ Space ] Auto-Sync  {/}   {#38bdf8-bg}{#08090e-fg}{bold}  [ c ] Changelog  {/}   {#312e81-bg}{#ffffff-fg}{bold}  [ u ] Pull  {/}   {#d97706-bg}{#ffffff-fg}{bold}  [ f ] Force Reset  {/}   {#f43f5e-bg}{#ffffff-fg}{bold}  [ d ] Remove  {/}\n\n`;
 
     // 2x2 Metric Grid Cards
     const cloneVal = `~/.gemini/plugins/...`.padEnd(28, ' ');
-    const coneVal = `Active (Sparse Cone)`.padEnd(28, ' ');
-    const skillsVal = `${plugins.length} Available Skills`.padEnd(28, ' ');
-    const syncVal = `${autoSync}`.padEnd(28, ' ');
+    const syncVal = `${syncTimeStr}`.slice(0, 28).padEnd(28, ' ');
+    const skillsUpdatedVal = `${skillsTimeStr}${commitTag}`.slice(0, 28).padEnd(28, ' ');
+    const syncStateVal = `${autoSync}`.padEnd(28, ' ');
 
     content += ` {#312e81-fg}╭──────────────────────────────╮  ╭──────────────────────────────╮{/}\n`;
-    content += ` {#312e81-fg}│{/} {#64748b-fg}LOCAL CLONE PATH             {/} {#312e81-fg}│  │{/} {#64748b-fg}SPARSE CHECKOUT              {/} {#312e81-fg}│{/}\n`;
-    content += ` {#312e81-fg}│{/} {#ffffff-fg}${cloneVal}{/} {#312e81-fg}│  │{/} {#10b981-fg}${coneVal}{/} {#312e81-fg}│{/}\n`;
+    content += ` {#312e81-fg}│{/} {#64748b-fg}LOCAL CLONE PATH             {/} {#312e81-fg}│  │{/} {#64748b-fg}LAST SYNC RUN CHECK          {/} {#312e81-fg}│{/}\n`;
+    content += ` {#312e81-fg}│{/} {#ffffff-fg}${cloneVal}{/} {#312e81-fg}│  │{/} {#10b981-fg}${syncVal}{/} {#312e81-fg}│{/}\n`;
     content += ` {#312e81-fg}╰──────────────────────────────╯  ╰──────────────────────────────╯{/}\n`;
 
     content += ` {#312e81-fg}╭──────────────────────────────╮  ╭──────────────────────────────╮{/}\n`;
-    content += ` {#312e81-fg}│{/} {#64748b-fg}EXPOSED SKILLS               {/} {#312e81-fg}│  │{/} {#64748b-fg}AUTO-SYNC STATE              {/} {#312e81-fg}│{/}\n`;
-    content += ` {#312e81-fg}│{/} {#06b6d4-fg}${skillsVal}{/} {#312e81-fg}│  │{/} {#cbd5e1-fg}${syncVal}{/} {#312e81-fg}│{/}\n`;
+    content += ` {#312e81-fg}│{/} {#64748b-fg}SKILLS UPDATED LOCALLY       {/} {#312e81-fg}│  │{/} {#64748b-fg}AUTO-SYNC STATE              {/} {#312e81-fg}│{/}\n`;
+    content += ` {#312e81-fg}│{/} {#06b6d4-fg}${skillsUpdatedVal}{/} {#312e81-fg}│  │{/} {#cbd5e1-fg}${syncStateVal}{/} {#312e81-fg}│{/}\n`;
     content += ` {#312e81-fg}╰──────────────────────────────╯  ╰──────────────────────────────╯{/}\n\n`;
 
-    content += ` {bold}{#06b6d4-fg}REGISTERED SKILLS IN THIS MARKETPLACE{/}\n`;
+    // Marketplace Changelog Preview Card
+    const mpChangelog = ChangelogEngine.getMarketplaceChangelog(k);
+    const cardW = 60;
+    const innerW = cardW - 2;
+    content += ` {bold}{#38bdf8-fg}✦ MARKETPLACE RELEASE HISTORY (CHANGELOG){/}   {#38bdf8-fg}[ c ] Open Modal{/}\n`;
+    content += ` {#312e81-fg}╭${'─'.repeat(innerW)}╮{/}\n`;
+    if (mpChangelog.found && mpChangelog.sections.length > 0) {
+      const latest = mpChangelog.sections[0];
+      const headingLine = `Latest: ${latest.heading}`.slice(0, innerW - 2).padEnd(innerW - 2, ' ');
+      content += ` {#312e81-fg}│{/} {#06b6d4-fg} ${headingLine} {/} {#312e81-fg}│{/}\n`;
+      const bodySnippet = latest.body.split('\n').filter(l => l.trim().length > 0).slice(0, 2);
+      for (const bl of bodySnippet) {
+        const cleanBl = bl.replace(/^[-*]\s+/, '• ').slice(0, innerW - 2).padEnd(innerW - 2, ' ');
+        content += ` {#312e81-fg}│{/} {#cbd5e1-fg} ${cleanBl} {/} {#312e81-fg}│{/}\n`;
+      }
+    } else {
+      const noLog = 'No CHANGELOG.md found in marketplace root.'.padEnd(innerW - 2, ' ');
+      content += ` {#312e81-fg}│{/} {#64748b-fg} ${noLog} {/} {#312e81-fg}│{/}\n`;
+    }
+    content += ` {#312e81-fg}╰${'─'.repeat(innerW)}╯{/}\n\n`;
+
+    content += ` {bold}{#06b6d4-fg}REGISTERED PLUGINS & SKILLS IN THIS MARKETPLACE (${plugins.length}){/}\n`;
     content += ` {#312e81-fg}───────────────────────────────────────────────────────────────────{/}\n`;
     for (const p of plugins.slice(0, 10)) {
       const inst = p.installed ? '{#10b981-fg}[Installed]{/}' : '{#64748b-fg}[Available]{/}';
-      content += `   • {bold}${p.name}{/} ${inst} - {#94a3b8-fg}${p.description.slice(0, 44)}{/}\n`;
+      const verBadge = p.version ? `{#06b6d4-fg}v${p.version}{/}` : '{#64748b-fg}v1.0.0{/}';
+      content += `   • {bold}${p.name}{/} ${verBadge} ${inst} - {#94a3b8-fg}${p.description.slice(0, 36)}{/}\n`;
     }
     if (plugins.length > 10) {
       content += `   {#64748b-fg}...and ${plugins.length - 10} more skills{/}\n`;
@@ -1088,14 +1266,14 @@ export class TuiApp {
     }
 
     let content = `\n {bold}{#ffffff-fg}${p.name}{/} {#10b981-bg}{#08090e-fg}{bold} ACTIVE IN AGY {/}\n`;
-    content += ` {#64748b-fg}Origin Collection: ${p.marketplaceName}{/}\n\n`;
+    content += ` {#64748b-fg}Origin Collection: ${p.marketplaceName}          Plugin Version: {#06b6d4-fg}v${p.version || '1.0.0'}{/}\n\n`;
 
-    content += ` {#f43f5e-bg}{#ffffff-fg}{bold}  [ Space / d ] Uninstall Plugin from Antigravity  {/}\n\n`;
+    content += ` {#f43f5e-bg}{#ffffff-fg}{bold}  [ Space / d ] Uninstall Plugin  {/}    {#38bdf8-bg}{#08090e-fg}{bold}  [ c ] View Changelog  {/}\n\n`;
 
     // 2x2 Metric Cards
     const symlinkVal = `~/.gemini/config/plugins`.padEnd(28, ' ');
     const healthVal = `✓ Valid Link Target`.padEnd(28, ' ');
-    const skillsCount = `${p.skills?.length || 1} Tools Exposed`.padEnd(28, ' ');
+    const skillsCount = `${p.skills?.length || 1} Exposed Tools (v${p.version || '1.0.0'})`.slice(0, 28).padEnd(28, ' ');
     const mcpCount = `${p.mcpServers?.length || 0} MCP Servers`.padEnd(28, ' ');
 
     content += ` {#312e81-fg}╭──────────────────────────────╮  ╭──────────────────────────────╮{/}\n`;
@@ -1108,10 +1286,32 @@ export class TuiApp {
     content += ` {#312e81-fg}│{/} {#ffffff-fg}${skillsCount}{/} {#312e81-fg}│  │{/} {#cbd5e1-fg}${mcpCount}{/} {#312e81-fg}│{/}\n`;
     content += ` {#312e81-fg}╰──────────────────────────────╯  ╰──────────────────────────────╯{/}\n\n`;
 
-    content += ` {bold}{#06b6d4-fg}CAPABILITIES EXPOSED TO AGY{/}\n`;
+    // Changelog Preview Card
+    const changelog = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
+    const cardW = 60;
+    const innerW = cardW - 2;
+    content += ` {bold}{#38bdf8-fg}✦ RECENT RELEASE HIGHLIGHTS (CHANGELOG){/}   {#38bdf8-fg}[ c ] Open Modal{/}\n`;
+    content += ` {#312e81-fg}╭${'─'.repeat(innerW)}╮{/}\n`;
+    if (changelog.found && changelog.sections.length > 0) {
+      const latest = changelog.sections[0];
+      const headingLine = `Release: ${latest.heading}`.slice(0, innerW - 2).padEnd(innerW - 2, ' ');
+      content += ` {#312e81-fg}│{/} {#06b6d4-fg} ${headingLine} {/} {#312e81-fg}│{/}\n`;
+      const bodySnippet = latest.body.split('\n').filter(l => l.trim().length > 0).slice(0, 2);
+      for (const bl of bodySnippet) {
+        const cleanBl = bl.replace(/^[-*]\s+/, '• ').slice(0, innerW - 2).padEnd(innerW - 2, ' ');
+        content += ` {#312e81-fg}│{/} {#cbd5e1-fg} ${cleanBl} {/} {#312e81-fg}│{/}\n`;
+      }
+    } else {
+      const noLog = 'No local CHANGELOG.md entries found.'.padEnd(innerW - 2, ' ');
+      content += ` {#312e81-fg}│{/} {#64748b-fg} ${noLog} {/} {#312e81-fg}│{/}\n`;
+    }
+    content += ` {#312e81-fg}╰${'─'.repeat(innerW)}╯{/}\n\n`;
+
+    content += ` {bold}{#06b6d4-fg}EXPOSED SKILLS & VERSIONS{/}\n`;
     content += ` {#312e81-fg}───────────────────────────────────────────────────────────────────{/}\n`;
     for (const s of p.skills) {
-      content += `   • {bold}${s.name}{/}: {#94a3b8-fg}${s.description}{/}\n`;
+      const sVer = s.version ? `v${s.version}` : `v${p.version || '1.0.0'}`;
+      content += `   • {bold}${s.name}{/} {#06b6d4-fg}[${sVer}]{/}: {#94a3b8-fg}${s.description}{/}\n`;
     }
 
     this.instDetail.setContent(content);

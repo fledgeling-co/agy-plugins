@@ -1,9 +1,9 @@
 {
   "name": "agy-plugins",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Native Plugin & Marketplace Manager for Antigravity CLI (AGY)",
   "type": "module",
-  "main": "dist/cli/index.js",
+  "main": "src/cli/index.js",
   "bin": {
     "agy-plugins": "bin/agy-plugins.js",
     "agy-plugin": "bin/agy-plugins.js"

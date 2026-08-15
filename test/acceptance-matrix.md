@@ -31,8 +31,14 @@ Acceptance-criteria traceability matrix and verification ledger for `agy-plugins
 | **DOC-003** | Doctor Bulk Repair | `Doctor.fixAll()` batch-resolves all repairable issues synchronously | `test/doctor.test.js` | ✓ Covered |
 | **SYNC-001** | Sync Fast-Forward | Pulls updates without merge commits on clean tracking branches | `test/sync.test.js` | ✓ Covered |
 | **SYNC-002** | Force Reset & Sync | Discards dirty working tree changes and resets to `origin/HEAD` | `test/sync.test.js` | ✓ Covered |
+| **CHG-001** | Changelog Parsing | Extracts semantic versions, release dates, and structured notes | `test/changelog.test.js` | ✓ Covered |
+| **CHG-002** | Changelog Discovery | Finds plugin-level `CHANGELOG.md` with fallback to marketplace root | `test/changelog.test.js` | ✓ Covered |
+| **CHG-003** | Skill Versioning | Extracts `version` from `SKILL.md` frontmatter and defaults to parent | `test/changelog.test.js` | ✓ Covered |
+| **CHG-004** | Marketplace Sync Timing | Tracks local git commit dates, hashes, and subjects on clone & sync | `test/changelog.test.js` | ✓ Covered |
 | **MCP-001** | MCP Handshake | Responds to `initialize` with server capabilities and info | `test/mcp.test.js` | ✓ Covered |
-| **MCP-002** | MCP Tools Registry | Exposes all 9 tools (`plugin_*`, `marketplace_*`, `doctor_*`) with schemas | `test/mcp.test.js` | ✓ Covered |
+| **MCP-002** | MCP Tools Registry | Exposes all 11 tools (`plugin_*`, `marketplace_*`, `doctor_*`) with schemas | `test/mcp.test.js` | ✓ Covered |
 | **MCP-003** | MCP Tool Execution | Executes tool calls and returns formatted JSON text content | `test/mcp.test.js` | ✓ Covered |
+| **MCP-004** | MCP Changelog Tool | Executes `plugin_changelog` and `marketplace_changelog` queries | `test/mcp.test.js` | ✓ Covered |
 | **TUI-001** | TUI Tab Navigation | Switches between Explore, Marketplaces, Installed, and Doctor tabs | `test/tui.test.js` | ✓ Covered |
 | **TUI-002** | TUI Card Layout | Formats 2x2 metric tiles, activation trigger boxes, and staging paths | `test/tui.test.js` | ✓ Covered |
+| **TUI-003** | TUI Changelog Modal | Displays scrollable release history modal via `c` hotkey across tabs | `test/tui.test.js` | ✓ Covered |

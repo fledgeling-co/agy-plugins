@@ -59,7 +59,8 @@ export class TestHarness {
         for (const s of p.skills) {
           const sDir = path.join(skillsDir, s.name);
           fs.mkdirSync(sDir, { recursive: true });
-          const frontmatter = s.rawFrontmatter || `---\nname: ${s.name}\ndescription: >-\n  ${s.description || 'Test skill description'}\n---\n\n# ${s.name}\n`;
+          const verField = s.version ? `\nversion: ${s.version}` : '';
+          const frontmatter = s.rawFrontmatter || `---\nname: ${s.name}${verField}\ndescription: >-\n  ${s.description || 'Test skill description'}\n---\n\n# ${s.name}\n`;
           fs.writeFileSync(path.join(sDir, 'SKILL.md'), frontmatter);
         }
       }

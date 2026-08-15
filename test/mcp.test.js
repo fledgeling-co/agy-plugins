@@ -29,7 +29,7 @@ describe('FastMCP Stdio Server (MCP-001 - MCP-003)', () => {
     assert.ok(res.result.capabilities.tools);
   });
 
-  it('MCP-002: lists all 9 registered MCP tools with valid schemas', async () => {
+  it('MCP-002: lists all 11 registered MCP tools with valid schemas', async () => {
     const req = {
       jsonrpc: '2.0',
       id: 2,
@@ -40,13 +40,15 @@ describe('FastMCP Stdio Server (MCP-001 - MCP-003)', () => {
     const res = await McpServer.handleRequest(req);
     assert.equal(res.id, 2);
     const tools = res.result.tools;
-    assert.equal(tools.length, 9);
+    assert.equal(tools.length, 11);
 
     const toolNames = tools.map((t) => t.name);
     assert.ok(toolNames.includes('plugin_list'));
     assert.ok(toolNames.includes('plugin_search'));
     assert.ok(toolNames.includes('plugin_install'));
     assert.ok(toolNames.includes('plugin_uninstall'));
+    assert.ok(toolNames.includes('plugin_changelog'));
+    assert.ok(toolNames.includes('marketplace_changelog'));
     assert.ok(toolNames.includes('marketplace_list'));
     assert.ok(toolNames.includes('marketplace_add'));
     assert.ok(toolNames.includes('marketplace_update'));
@@ -138,5 +140,30 @@ describe('FastMCP Stdio Server (MCP-001 - MCP-003)', () => {
     const uninstallRes = await McpServer.handleRequest(uninstallCall);
     const uninstallData = JSON.parse(uninstallRes.result.content[0].text);
     assert.equal(uninstallData.success, true);
+  });
+
+  it('MCP-005: executes plugin_changelog and marketplace_changelog tools', async () => {
+    TestHarness.createMockMarketplace(sandbox, 'mcp-changelog-market', [
+      {
+        name: 'versioned-plugin',
+        description: 'Plugin with version metadata',
+        skills: [{ name: 'versioned-plugin', description: 'Versioned skill' }],
+      },
+    ]);
+
+    const changelogCall = {
+      jsonrpc: '2.0',
+      id: 7,
+      method: 'tools/call',
+      params: {
+        name: 'plugin_changelog',
+        arguments: { pluginName: 'versioned-plugin', marketplaceName: 'mcp-changelog-market' },
+      },
+    };
+
+    const changelogRes = await McpServer.handleRequest(changelogCall);
+    assert.equal(changelogRes.id, 7);
+    const changelogData = JSON.parse(changelogRes.result.content[0].text);
+    assert.equal(changelogData.pluginName, 'versioned-plugin');
   });
 });

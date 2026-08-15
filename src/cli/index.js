@@ -5,6 +5,7 @@ import { Installer } from '../core/installer.js';
 import { SyncEngine } from '../core/sync.js';
 import { Doctor } from '../core/doctor.js';
 import { Git } from '../core/git.js';
+import { ChangelogEngine } from '../core/changelog.js';
 import { Ansi } from '../tui/ansi.js';
 import { Paths } from '../core/paths.js';
 
@@ -37,9 +38,19 @@ export async function runCli() {
         for (const [name, entry] of Object.entries(mps)) {
           const plugins = Registry.getPluginsForMarketplace(name);
           const autoSyncMark = entry.autoUpdate ? Ansi.prism.emerald('auto-sync: on') : Ansi.prism.textDim('auto-sync: off');
-          console.log(` ${Ansi.bold(name)} ${Ansi.prism.textDim(`(${plugins.length} skills)`)} [${autoSyncMark}]`);
+          console.log(` ${Ansi.bold(name)} ${Ansi.prism.textDim(`(${plugins.length} plugins/skills)`)} [${autoSyncMark}]`);
           console.log(`    Origin: ${Ansi.prism.cyan(entry.repo || entry.url || entry.path || 'local')}`);
           console.log(`    Location: ${Ansi.prism.textDim(entry.installLocation || 'builtin')}`);
+          if (entry.lastUpdated) {
+            const syncTime = new Date(entry.lastUpdated).toLocaleString();
+            console.log(`    Last Synced: ${Ansi.prism.textSecondary(syncTime)}`);
+          }
+          if (entry.lastSkillsUpdated) {
+            const skillTime = new Date(entry.lastSkillsUpdated).toLocaleString();
+            const commitTag = entry.commitSha ? ` (${entry.commitSha})` : '';
+            console.log(`    Last Skills Updated: ${Ansi.prism.emerald(skillTime + commitTag)}`);
+          }
+          console.log('');
         }
         break;
       }
@@ -275,6 +286,85 @@ export async function runCli() {
       break;
     }
 
+    case 'changelog':
+    case 'history': {
+      const target = args[1];
+      if (!target) {
+        // Show list of available marketplaces and plugins
+        const mps = Registry.getMarketplaces();
+        console.log(Ansi.bold(Ansi.prism.textPrimary('Available Changelogs:\n')));
+        console.log(Ansi.prism.textSecondary('Marketplaces:'));
+        for (const name of Object.keys(mps)) {
+          console.log(`  agy-plugin changelog ${name}`);
+        }
+        console.log(Ansi.prism.textSecondary('\nPlugins:'));
+        const plugins = Registry.getAllPlugins();
+        for (const p of plugins.slice(0, 15)) {
+          console.log(`  agy-plugin changelog ${p.name}`);
+        }
+        if (plugins.length > 15) {
+          console.log(Ansi.prism.textDim(`  ... and ${plugins.length - 15} more plugins`));
+        }
+        break;
+      }
+
+      // Check if target is a marketplace first
+      const mps = Registry.getMarketplaces();
+      if (mps[target]) {
+        const mpLog = ChangelogEngine.getMarketplaceChangelog(target);
+        console.log(ChangelogEngine.formatForTerminal(mpLog));
+        break;
+      }
+
+      // Check if target is a plugin
+      const pLog = ChangelogEngine.getPluginChangelog(target);
+      console.log(ChangelogEngine.formatForTerminal(pLog));
+      break;
+    }
+
+    case 'info': {
+      const pluginName = args[1];
+      if (!pluginName) {
+        console.error(Ansi.prism.rose('Error: Please provide a plugin name (e.g. agy-plugin info trawl).'));
+        process.exit(1);
+      }
+
+      const all = Registry.getAllPlugins();
+      const target = all.find(p => p.name === pluginName);
+      if (!target) {
+        console.error(Ansi.prism.rose(`Error: Plugin "${pluginName}" not found.`));
+        process.exit(1);
+      }
+
+      const installed = Registry.getInstalledPlugins();
+      const isInst = !!installed[target.name];
+
+      console.log(Ansi.bold(Ansi.prism.textPrimary(`Plugin: ${target.name} (v${target.version})`)));
+      console.log(` Marketplace: ${Ansi.prism.cyan(target.marketplaceName)} [${target.category}]`);
+      console.log(` Status: ${isInst ? Ansi.prism.emerald('✓ Installed') : Ansi.prism.textDim('○ Available')}`);
+      console.log(` Description: ${Ansi.prism.textSecondary(target.description)}`);
+      console.log(` Location: ${Ansi.prism.textDim(target.absolutePath)}\n`);
+
+      console.log(Ansi.bold(Ansi.prism.textPrimary(`Skills (${target.skills.length}):`)));
+      for (const s of target.skills) {
+        const sVer = s.version ? Ansi.prism.cyan(`v${s.version}`) : Ansi.prism.textDim(`v${target.version}`);
+        console.log(` ✦ ${Ansi.bold(s.name)} ${sVer} ${Ansi.prism.textDim(`(~${s.tokenFootprint} tokens)`)}`);
+        if (s.description) {
+          console.log(`    ${Ansi.prism.textSecondary(s.description)}`);
+        }
+      }
+
+      const changelog = ChangelogEngine.getPluginChangelog(target.name, target.marketplaceName);
+      if (changelog.found && changelog.sections.length > 0) {
+        const latest = changelog.sections[0];
+        console.log(Ansi.bold(Ansi.prism.textPrimary(`\nLatest Release Notes (${latest.heading}):`)));
+        const excerpt = latest.body.split('\n').slice(0, 5).join('\n');
+        console.log(Ansi.prism.textSecondary(excerpt));
+        console.log(Ansi.prism.textDim(`\nView complete release history: agy-plugin changelog ${target.name}`));
+      }
+      break;
+    }
+
     default: {
       console.log(Ansi.bold(Ansi.prism.textPrimary('Antigravity Plugin Manager (agy-plugin / agy-plugins)')));
       console.log(Ansi.prism.textSecondary('Usage:\n'));
@@ -285,6 +375,9 @@ export async function runCli() {
       console.log('  agy-plugin install <skill[@market]>      Install a skill (e.g. trawl@fledgeling-plugins or trawl)');
       console.log('  agy-plugin uninstall <skill>             Uninstall a skill');
       console.log('  agy-plugin list [--installed]            List all discovered or installed skills');
+      console.log('  agy-plugin search <query>                Search plugins and skills');
+      console.log('  agy-plugin info <plugin>                 Show detailed plugin & skill versions');
+      console.log('  agy-plugin changelog <plugin/market>     View release history and changelog');
       console.log('  agy-plugin update                        Update all marketplaces');
       console.log('  agy-plugin doctor [--fix]                Check for broken links and repair them');
       console.log('  agy-plugin tui                           Launch the interactive visual menu');
