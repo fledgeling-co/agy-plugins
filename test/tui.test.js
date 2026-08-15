@@ -116,4 +116,26 @@ describe('TUI Application & Layout (TUI-001 - TUI-002)', () => {
     const dividerRaw = app.stripTags(app.catalogDivider.content);
     assert.match(dividerRaw, /───/);
   });
+
+  it('TUI-007: groups catalog and installed skills by marketplace sections', () => {
+    app = new TuiApp();
+    assert.equal(app.groupByMarketplace, true);
+    assert.ok(app.catalogRowMap.length >= 2);
+
+    // First row should be marketplace header
+    const firstRow = app.catalogRowMap[0];
+    assert.equal(firstRow.type, 'header');
+    assert.equal(firstRow.marketplace, 'tui-market');
+
+    // Second row should be plugin
+    const secondRow = app.catalogRowMap[1];
+    assert.equal(secondRow.type, 'plugin');
+    assert.equal(secondRow.plugin.name, 'sample-tui-plugin');
+
+    // Toggling groupByMarketplace switches to flat list
+    app.groupByMarketplace = false;
+    app.updateCatalogList();
+    assert.equal(app.catalogRowMap[0].type, 'plugin');
+    assert.equal(app.catalogRowMap[0].plugin.name, 'sample-tui-plugin');
+  });
 });

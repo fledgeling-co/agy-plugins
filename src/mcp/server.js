@@ -156,6 +156,7 @@ export class McpServer {
                 type: 'object',
                 properties: {
                   installedOnly: { type: 'boolean', description: 'Only return plugins that are currently installed in AGY.' },
+                  groupByMarketplace: { type: 'boolean', description: 'Group returned plugins by marketplace name into a dictionary.' },
                 },
               },
             },
@@ -295,10 +296,17 @@ export class McpServer {
 
       case 'plugin_list': {
         const plugins = Registry.getAllPlugins();
-        if (args.installedOnly) {
-          return plugins.filter(p => p.installed);
+        const filtered = args.installedOnly ? plugins.filter(p => p.installed) : plugins;
+        if (args.groupByMarketplace) {
+          const grouped = {};
+          for (const p of filtered) {
+            const mp = p.marketplaceName || 'other';
+            if (!grouped[mp]) grouped[mp] = [];
+            grouped[mp].push(p);
+          }
+          return grouped;
         }
-        return plugins;
+        return filtered;
       }
 
       case 'plugin_search': {

@@ -14,6 +14,9 @@ export class TuiApp {
     this.selectedMpIndex = 0;
     this.selectedInstIndex = 0;
     this.selectedDiagIndex = 0;
+    this.groupByMarketplace = true;
+    this.catalogRowMap = [];
+    this.instRowMap = [];
 
     this.plugins = [];
     this.filteredPlugins = [];
@@ -739,6 +742,14 @@ export class TuiApp {
       this.openChangelogModal();
     });
 
+    this.catalogList.key(['g', 'm'], () => {
+      this.groupByMarketplace = !this.groupByMarketplace;
+      this.showToast(`Marketplace Sections: ${this.groupByMarketplace ? 'GROUPED' : 'FLAT LIST'}`);
+      this.updateCatalogList();
+      this.updateCatalogDetail();
+      this.screen.render();
+    });
+
     this.catalogList.key(['u'], async () => {
       await this.syncAllMarketplaces();
     });
@@ -762,6 +773,22 @@ export class TuiApp {
 
     this.mpList.key(['enter'], () => {
       this.openChangelogModal();
+    });
+
+    this.mpList.key(['e'], () => {
+      const mpKeys = Object.keys(this.marketplaces);
+      const mp = mpKeys[this.selectedMpIndex];
+      if (mp) {
+        this.switchTab('catalog');
+        if (this.groupByMarketplace) {
+          const targetIndex = this.catalogRowMap.findIndex(r => r.marketplace === mp);
+          if (targetIndex !== -1) {
+            this.selectedIndex = targetIndex;
+            this.catalogList.select(targetIndex);
+            this.updateCatalogDetail();
+          }
+        }
+      }
     });
 
     this.mpList.key(['u'], async () => {
@@ -798,17 +825,29 @@ export class TuiApp {
     });
 
     this.instList.key(['space', 'd'], async () => {
-      const installed = this.plugins.filter(p => p.installed);
-      const target = installed[this.selectedInstIndex];
-      if (target) {
-        await Installer.uninstallPlugin(target.name);
-        this.showToast(`Uninstalled ${target.name}`);
+      const row = this.instRowMap[this.selectedInstIndex];
+      if (!row) return;
+      if (row.type === 'header') {
+        this.showToast(`Select an installed plugin in ${row.marketplace} to uninstall`);
+        return;
+      }
+      if (row.plugin) {
+        await Installer.uninstallPlugin(row.plugin.name);
+        this.showToast(`Uninstalled ${row.plugin.name}`);
         this.refreshData();
       }
     });
 
     this.instList.key(['enter'], () => {
       this.openChangelogModal();
+    });
+
+    this.instList.key(['g', 'm'], () => {
+      this.groupByMarketplace = !this.groupByMarketplace;
+      this.showToast(`Marketplace Sections: ${this.groupByMarketplace ? 'GROUPED' : 'FLAT LIST'}`);
+      this.updateInstalledList();
+      this.updateInstalledDetail();
+      this.screen.render();
     });
 
     // Tab 4 (Doctor) Events
@@ -943,20 +982,35 @@ export class TuiApp {
       this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Marketplace Release History: ${k} {/} `);
       this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
     } else if (this.currentTab === 'installed') {
-      const installed = this.plugins.filter(p => p.installed);
-      const p = installed[this.selectedInstIndex];
-      if (!p) return;
+      const row = this.instRowMap[this.selectedInstIndex];
+      if (!row) return;
 
-      const data = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
-      this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Plugin Release History: ${p.name} (v${p.version || '1.0.0'}) {/} `);
-      this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+      if (row.type === 'header') {
+        const data = ChangelogEngine.getMarketplaceChangelog(row.marketplace);
+        this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Marketplace Release History: ${row.marketplace} {/} `);
+        this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+      } else {
+        const p = row.plugin;
+        if (!p) return;
+        const data = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
+        this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Plugin Release History: ${p.name} (v${p.version || '1.0.0'}) {/} `);
+        this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+      }
     } else {
-      const p = this.filteredPlugins[this.selectedIndex];
-      if (!p) return;
+      const row = this.catalogRowMap[this.selectedIndex];
+      if (!row) return;
 
-      const data = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
-      this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Plugin Release History: ${p.name} (v${p.version || '1.0.0'}) {/} `);
-      this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+      if (row.type === 'header') {
+        const data = ChangelogEngine.getMarketplaceChangelog(row.marketplace);
+        this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Marketplace Release History: ${row.marketplace} {/} `);
+        this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+      } else {
+        const p = row.plugin;
+        if (!p) return;
+        const data = ChangelogEngine.getPluginChangelog(p.name, p.marketplaceName);
+        this.changelogModal.setLabel(` {bold}{#38bdf8-fg} ✦ Plugin Release History: ${p.name} (v${p.version || '1.0.0'}) {/} `);
+        this.changelogContent.setContent(ChangelogEngine.formatForTui(data, { maxSections: 15 }));
+      }
     }
 
     this.changelogContent.scrollTo(0);
@@ -1098,11 +1152,11 @@ export class TuiApp {
     const width = this.screen.width || 120;
     let help = '';
     if (this.currentTab === 'catalog') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/i]{/} {#cbd5e1-fg}Toggle Install{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Pull Updates{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/i]{/} {#cbd5e1-fg}Install{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#a855f7-fg}[g]{/} {#cbd5e1-fg}Group/Flat{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Pull{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'marketplaces') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/t]{/} {#cbd5e1-fg}Auto-Sync{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f59e0b-fg}[f]{/} {#cbd5e1-fg}Force Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Space/t]{/} {#cbd5e1-fg}Auto-Sync{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#38bdf8-fg}[e]{/} {#cbd5e1-fg}Explore Skills{/}   {#6366f1-fg}[a]{/} {#cbd5e1-fg}Add{/}   {#6366f1-fg}[u]{/} {#cbd5e1-fg}Sync{/}   {#f59e0b-fg}[f]{/} {#cbd5e1-fg}Force Sync{/}   {#f43f5e-fg}[d]{/} {#cbd5e1-fg}Remove{/}';
     } else if (this.currentTab === 'installed') {
-      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#f43f5e-fg}[Space/d]{/} {#cbd5e1-fg}Uninstall Plugin{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
+      help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#f43f5e-fg}[Space/d]{/} {#cbd5e1-fg}Uninstall{/}   {#38bdf8-fg}[Enter/c]{/} {#cbd5e1-fg}Changelog{/}   {#a855f7-fg}[g]{/} {#cbd5e1-fg}Group/Flat{/}   {#ec4899-fg}[/]{/} {#cbd5e1-fg}Search{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     } else if (this.currentTab === 'doctor') {
       help = ' {#64748b-fg}[↑/↓]{/} {#cbd5e1-fg}Navigate{/}   {#06b6d4-fg}[←/→]{/} {#cbd5e1-fg}Tabs{/}   {#10b981-fg}[Enter]{/} {#cbd5e1-fg}Auto-Fix Issue{/}   {#10b981-fg}[a]{/} {#cbd5e1-fg}Fix All Issues{/}   {#64748b-fg}[q]{/} {#cbd5e1-fg}Exit{/}';
     }
@@ -1212,34 +1266,153 @@ export class TuiApp {
     const origDiv = showOrigin ? this.formatTableCell('─'.repeat(Math.max(2, originW - 2)), originW, '#312e81') : '';
     this.catalogDivider.setContent(` ${nameDiv}${verDiv}${descDiv}${origDiv}`);
 
-    const items = this.filteredPlugins.map(p => {
-      const icon = p.installed ? '✓ ' : '◉ ';
-      const iconColor = p.installed ? '#10b981' : '#6366f1';
-      const iconStyled = `{${iconColor}-fg}${icon}{/}`;
-      const rawName = p.name;
-      const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
-      const paddedName = truncatedName.padEnd(nameW - 2, ' ');
-      const nameCell = `${iconStyled}{bold}${paddedName}{/}`;
+    this.catalogRowMap = [];
+    const items = [];
 
-      const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
-      const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
-
-      if (showOrigin) {
-        const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
-        return ` ${nameCell}${verCell}${descCell}${origCell}`;
+    if (this.groupByMarketplace) {
+      const groups = {};
+      for (const p of this.filteredPlugins) {
+        const mpName = p.marketplaceName || 'other';
+        if (!groups[mpName]) groups[mpName] = [];
+        groups[mpName].push(p);
       }
 
-      return ` ${nameCell}${verCell}${descCell}`;
-    });
+      for (const [mpName, pluginsInGroup] of Object.entries(groups)) {
+        const installedCount = pluginsInGroup.filter(p => p.installed).length;
+        const totalCount = pluginsInGroup.length;
+        const bannerText = `── ⛃ ${mpName} (${totalCount} skills, ${installedCount} active) `;
+        const bannerLine = bannerText.padEnd(listWidth - 2, '─');
+
+        this.catalogRowMap.push({
+          type: 'header',
+          marketplace: mpName,
+          total: totalCount,
+          installed: installedCount,
+          plugins: pluginsInGroup
+        });
+        items.push(`{#38bdf8-fg}{bold}${bannerLine}{/}`);
+
+        for (const p of pluginsInGroup) {
+          this.catalogRowMap.push({
+            type: 'plugin',
+            plugin: p
+          });
+
+          const icon = p.installed ? '✓ ' : '◉ ';
+          const iconColor = p.installed ? '#10b981' : '#6366f1';
+          const iconStyled = `{${iconColor}-fg}${icon}{/}`;
+          const rawName = p.name;
+          const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
+          const paddedName = truncatedName.padEnd(nameW - 2, ' ');
+          const nameCell = `${iconStyled}{bold}${paddedName}{/}`;
+
+          const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
+          const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
+
+          if (showOrigin) {
+            const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
+            items.push(` ${nameCell}${verCell}${descCell}${origCell}`);
+          } else {
+            items.push(` ${nameCell}${verCell}${descCell}`);
+          }
+        }
+      }
+    } else {
+      for (const p of this.filteredPlugins) {
+        this.catalogRowMap.push({
+          type: 'plugin',
+          plugin: p
+        });
+
+        const icon = p.installed ? '✓ ' : '◉ ';
+        const iconColor = p.installed ? '#10b981' : '#6366f1';
+        const iconStyled = `{${iconColor}-fg}${icon}{/}`;
+        const rawName = p.name;
+        const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
+        const paddedName = truncatedName.padEnd(nameW - 2, ' ');
+        const nameCell = `${iconStyled}{bold}${paddedName}{/}`;
+
+        const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
+        const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
+
+        if (showOrigin) {
+          const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
+          items.push(` ${nameCell}${verCell}${descCell}${origCell}`);
+        } else {
+          items.push(` ${nameCell}${verCell}${descCell}`);
+        }
+      }
+    }
 
     this.catalogList.setItems(items);
     if (items.length > 0) {
+      this.selectedIndex = Math.min(this.selectedIndex, items.length - 1);
+      if (this.selectedIndex < 0) this.selectedIndex = 0;
       this.catalogList.select(this.selectedIndex);
     }
   }
 
   updateCatalogDetail() {
-    const p = this.filteredPlugins[this.selectedIndex];
+    const row = this.catalogRowMap[this.selectedIndex];
+    if (!row) {
+      this.catalogDetail.setContent('{center}{#64748b-fg}\n\nNo plugin selected or matching search query.{/}{/center}');
+      return;
+    }
+
+    if (row.type === 'header') {
+      const mpName = row.marketplace;
+      const mp = this.marketplaces[mpName] || {};
+      const source = mp.source?.repo || mp.source || 'local';
+      const autoSync = mp.autoUpdate !== false ? '{#10b981-fg}ENABLED (Continuous 60s){/}' : '{#f59e0b-fg}PAUSED (Manual Only){/}';
+      const syncTimeStr = this.formatRelativeTime(mp.lastUpdated);
+      const skillsTimeStr = this.formatRelativeTime(mp.lastSkillsUpdated || mp.commitDate || mp.lastUpdated);
+      const commitTag = mp.commitSha ? ` (${mp.commitSha})` : '';
+
+      let content = `\n {bold}{#ffffff-fg}⛃ ${mpName}{/} {#38bdf8-bg}{#08090e-fg}{bold} MARKETPLACE SECTION {/}\n`;
+      content += ` {#64748b-fg}Remote Repository: https://github.com/${source}{/}\n\n`;
+
+      const syncBtn = mp.autoUpdate !== false 
+        ? '{#10b981-bg}{#08090e-fg}{bold}  [Space/t] Auto-Sync: ON  {/}' 
+        : '{#64748b-bg}{#ffffff-fg}{bold}  [Space/t] Auto-Sync: OFF  {/}';
+      const logBtn = '{#38bdf8-bg}{#08090e-fg}{bold}  [Enter/c] Changelog  {/}';
+      const pullBtn = '{#312e81-bg}{#ffffff-fg}{bold}  [u] Pull  {/}';
+      const groupBtn = '{#a855f7-bg}{#ffffff-fg}{bold}  [g] Flat/Grouped View  {/}';
+
+      content += ` ${syncBtn}   ${logBtn}   ${pullBtn}\n`;
+      content += ` ${groupBtn}\n\n`;
+
+      // 2x2 Metric Grid Cards
+      const cloneVal = `~/.gemini/plugins/...`.padEnd(28, ' ');
+      const skillsVal = `${row.total} skills (${row.installed} active)`.slice(0, 28).padEnd(28, ' ');
+      const skillsUpdatedVal = `${skillsTimeStr}${commitTag}`.slice(0, 28).padEnd(28, ' ');
+      const syncStateVal = `${autoSync}`.padEnd(28, ' ');
+
+      content += ` {#312e81-fg}╭──────────────────────────────╮  ╭──────────────────────────────╮{/}\n`;
+      content += ` {#312e81-fg}│{/} {#64748b-fg}SECTION DISCOVERY            {/} {#312e81-fg}│  │{/} {#64748b-fg}SKILLS IN SECTION            {/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}│{/} {#06b6d4-fg}${cloneVal}{/} {#312e81-fg}│  │{/} {#10b981-fg}${skillsVal}{/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}╰──────────────────────────────╯  ╰──────────────────────────────╯{/}\n`;
+
+      content += ` {#312e81-fg}╭──────────────────────────────╮  ╭──────────────────────────────╮{/}\n`;
+      content += ` {#312e81-fg}│{/} {#64748b-fg}SKILLS UPDATED LOCALLY       {/} {#312e81-fg}│  │{/} {#64748b-fg}AUTO-SYNC STATE              {/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}│{/} {#06b6d4-fg}${skillsUpdatedVal}{/} {#312e81-fg}│  │{/} {#cbd5e1-fg}${syncStateVal}{/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}╰──────────────────────────────╯  ╰──────────────────────────────╯{/}\n\n`;
+
+      content += ` {bold}{#06b6d4-fg}SKILLS IN THIS MARKETPLACE (${row.plugins.length}){/}\n`;
+      content += ` {#312e81-fg}───────────────────────────────────────────────────────────────────{/}\n`;
+      for (const p of row.plugins.slice(0, 8)) {
+        const inst = p.installed ? '{#10b981-fg}[Installed]{/}' : '{#64748b-fg}[Available]{/}';
+        const verBadge = p.version ? `{#06b6d4-fg}v${p.version}{/}` : '{#64748b-fg}v1.0.0{/}';
+        content += `   • {bold}${p.name}{/} ${verBadge} ${inst} - {#94a3b8-fg}${p.description.slice(0, 36)}{/}\n`;
+      }
+      if (row.plugins.length > 8) {
+        content += `   {#64748b-fg}...and ${row.plugins.length - 8} more skills below in list{/}\n`;
+      }
+
+      this.catalogDetail.setContent(content);
+      return;
+    }
+
+    const p = row.plugin;
     if (!p) {
       this.catalogDetail.setContent('{center}{#64748b-fg}\n\nNo plugin selected or matching search query.{/}{/center}');
       return;
@@ -1512,34 +1685,131 @@ export class TuiApp {
     const origDiv = showOrigin ? this.formatTableCell('─'.repeat(Math.max(2, originW - 2)), originW, '#312e81') : '';
     this.instDivider.setContent(` ${nameDiv}${verDiv}${descDiv}${origDiv}`);
 
-    const items = installed.map(p => {
-      const icon = '{#10b981-fg}✓ {/}';
-      const rawName = p.name;
-      const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
-      const paddedName = truncatedName.padEnd(nameW - 2, ' ');
-      const nameCell = `${icon}{bold}${paddedName}{/}`;
+    this.instRowMap = [];
+    const items = [];
 
-      const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
-      const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
-
-      if (showOrigin) {
-        const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
-        return ` ${nameCell}${verCell}${descCell}${origCell}`;
+    if (this.groupByMarketplace) {
+      const groups = {};
+      for (const p of installed) {
+        const mpName = p.marketplaceName || 'other';
+        if (!groups[mpName]) groups[mpName] = [];
+        groups[mpName].push(p);
       }
 
-      return ` ${nameCell}${verCell}${descCell}`;
-    });
+      for (const [mpName, pluginsInGroup] of Object.entries(groups)) {
+        const bannerText = `── ⛃ ${mpName} (${pluginsInGroup.length} installed) `;
+        const bannerLine = bannerText.padEnd(listWidth - 2, '─');
+
+        this.instRowMap.push({
+          type: 'header',
+          marketplace: mpName,
+          count: pluginsInGroup.length,
+          plugins: pluginsInGroup
+        });
+        items.push(`{#10b981-fg}{bold}${bannerLine}{/}`);
+
+        for (const p of pluginsInGroup) {
+          this.instRowMap.push({
+            type: 'plugin',
+            plugin: p
+          });
+
+          const icon = '{#10b981-fg}✓ {/}';
+          const rawName = p.name;
+          const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
+          const paddedName = truncatedName.padEnd(nameW - 2, ' ');
+          const nameCell = `${icon}{bold}${paddedName}{/}`;
+
+          const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
+          const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
+
+          if (showOrigin) {
+            const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
+            items.push(` ${nameCell}${verCell}${descCell}${origCell}`);
+          } else {
+            items.push(` ${nameCell}${verCell}${descCell}`);
+          }
+        }
+      }
+    } else {
+      for (const p of installed) {
+        this.instRowMap.push({
+          type: 'plugin',
+          plugin: p
+        });
+
+        const icon = '{#10b981-fg}✓ {/}';
+        const rawName = p.name;
+        const truncatedName = rawName.length > nameW - 3 ? rawName.slice(0, nameW - 5) + '..' : rawName;
+        const paddedName = truncatedName.padEnd(nameW - 2, ' ');
+        const nameCell = `${icon}{bold}${paddedName}{/}`;
+
+        const verCell = this.formatTableCell(p.version ? `v${p.version}` : 'v1.0.0', verW, '#38bdf8');
+        const descCell = this.formatTableCell(p.description || '', descW, '#94a3b8');
+
+        if (showOrigin) {
+          const origCell = this.formatTableCell(p.marketplaceName || '', originW, '#64748b');
+          items.push(` ${nameCell}${verCell}${descCell}${origCell}`);
+        } else {
+          items.push(` ${nameCell}${verCell}${descCell}`);
+        }
+      }
+    }
 
     this.instList.setItems(items);
     if (items.length > 0) {
+      this.selectedInstIndex = Math.min(this.selectedInstIndex, items.length - 1);
+      if (this.selectedInstIndex < 0) this.selectedInstIndex = 0;
       this.instList.select(this.selectedInstIndex);
     }
   }
 
   updateInstalledDetail() {
-    const installed = this.plugins.filter(p => p.installed);
-    const p = installed[this.selectedInstIndex];
+    const row = this.instRowMap[this.selectedInstIndex];
+    if (!row) {
+      this.instDetail.setContent('{center}{#64748b-fg}\n\nNo installed plugins found{/}{/center}');
+      return;
+    }
 
+    if (row.type === 'header') {
+      const mpName = row.marketplace;
+      const mp = this.marketplaces[mpName] || {};
+      const source = mp.source?.repo || mp.source || 'local';
+
+      let content = `\n {bold}{#ffffff-fg}⛃ ${mpName}{/} {#10b981-bg}{#08090e-fg}{bold} INSTALLED SECTION {/}\n`;
+      content += ` {#64748b-fg}Origin Collection: https://github.com/${source}{/}\n\n`;
+
+      const logBtn = '{#38bdf8-bg}{#08090e-fg}{bold}  [Enter/c] Changelog  {/}';
+      const groupBtn = '{#a855f7-bg}{#ffffff-fg}{bold}  [g] Flat/Grouped View  {/}';
+      content += ` ${logBtn}   ${groupBtn}\n\n`;
+
+      const symlinkVal = `~/.gemini/config/plugins`.padEnd(28, ' ');
+      const healthVal = `✓ All Symlinks Active`.padEnd(28, ' ');
+      const skillsCount = `${row.count} Active Plugins`.slice(0, 28).padEnd(28, ' ');
+      const originVal = `${mpName}`.slice(0, 28).padEnd(28, ' ');
+
+      content += ` {#312e81-fg}╭──────────────────────────────╮  ╭──────────────────────────────╮{/}\n`;
+      content += ` {#312e81-fg}│{/} {#64748b-fg}TARGET SYMLINK DIRECTORY     {/} {#312e81-fg}│  │{/} {#64748b-fg}HEALTH VERIFICATION          {/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}│{/} {#06b6d4-fg}${symlinkVal}{/} {#312e81-fg}│  │{/} {#10b981-fg}${healthVal}{/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}╰──────────────────────────────╯  ╰──────────────────────────────╯{/}\n`;
+
+      content += ` {#312e81-fg}╭──────────────────────────────╮  ╭──────────────────────────────╮{/}\n`;
+      content += ` {#312e81-fg}│{/} {#64748b-fg}INSTALLED IN THIS SECTION    {/} {#312e81-fg}│  │{/} {#64748b-fg}COLLECTION ORIGIN            {/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}│{/} {#ffffff-fg}${skillsCount}{/} {#312e81-fg}│  │{/} {#cbd5e1-fg}${originVal}{/} {#312e81-fg}│{/}\n`;
+      content += ` {#312e81-fg}╰──────────────────────────────╯  ╰──────────────────────────────╯{/}\n\n`;
+
+      content += ` {bold}{#10b981-fg}ACTIVE PLUGINS IN THIS SECTION (${row.plugins.length}){/}\n`;
+      content += ` {#312e81-fg}───────────────────────────────────────────────────────────────────{/}\n`;
+      for (const p of row.plugins) {
+        const verBadge = p.version ? `{#06b6d4-fg}v${p.version}{/}` : '{#64748b-fg}v1.0.0{/}';
+        content += `   • {bold}${p.name}{/} ${verBadge} - {#94a3b8-fg}${p.description.slice(0, 42)}{/}\n`;
+      }
+
+      this.instDetail.setContent(content);
+      return;
+    }
+
+    const p = row.plugin;
     if (!p) {
       this.instDetail.setContent('{center}{#64748b-fg}\n\nNo installed plugins found{/}{/center}');
       return;
@@ -1589,9 +1859,13 @@ export class TuiApp {
 
     content += ` {bold}{#06b6d4-fg}EXPOSED SKILLS & VERSIONS{/}\n`;
     content += ` {#312e81-fg}───────────────────────────────────────────────────────────────────{/}\n`;
-    for (const s of p.skills) {
-      const sVer = s.version ? `v${s.version}` : `v${p.version || '1.0.0'}`;
-      content += `   • {bold}${s.name}{/} {#06b6d4-fg}[${sVer}]{/}: {#94a3b8-fg}${s.description}{/}\n`;
+    if (p.skills && p.skills.length > 0) {
+      for (const s of p.skills) {
+        const sVer = s.version ? `v${s.version}` : `v${p.version || '1.0.0'}`;
+        content += `   • {bold}${s.name}{/} {#06b6d4-fg}[${sVer}]{/}: {#94a3b8-fg}${s.description}{/}\n`;
+      }
+    } else {
+      content += `   • {bold}${p.name}{/} {#06b6d4-fg}[v${p.version || '1.0.0'}]{/}: {#94a3b8-fg}${p.description}{/}\n`;
     }
 
     this.instDetail.setContent(content);
@@ -1671,7 +1945,17 @@ export class TuiApp {
   }
 
   async toggleCurrentPlugin() {
-    const plugin = this.filteredPlugins[this.selectedIndex];
+    const row = this.catalogRowMap[this.selectedIndex];
+    if (!row) return;
+
+    if (row.type === 'header') {
+      const auto = Registry.toggleAutoUpdate(row.marketplace);
+      this.showToast(`Auto-update for ${row.marketplace}: ${auto ? 'ENABLED' : 'PAUSED'}`);
+      this.refreshData();
+      return;
+    }
+
+    const plugin = row.plugin;
     if (!plugin) return;
 
     if (plugin.installed) {

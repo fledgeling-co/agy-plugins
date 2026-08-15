@@ -59,6 +59,20 @@ describe('CLI Commands E2E (CLI-001 - CLI-011)', () => {
     assert.equal(parsed[0].name, 'json-plugin');
   });
 
+  it('CLI-002b: list --grouped outputs marketplace section headers', async () => {
+    TestHarness.createMockMarketplace(sandbox, 'group-market', [
+      {
+        name: 'grouped-plugin',
+        description: 'Grouped test plugin',
+        skills: [{ name: 'grouped-plugin', description: 'Grouped skill' }],
+      },
+    ]);
+
+    const { stdout } = await runAgy(['list', '--grouped']);
+    assert.match(stdout, /group-market/);
+    assert.match(stdout, /grouped-plugin/);
+  });
+
   it('CLI-003: search command finds matching plugins', async () => {
     TestHarness.createMockMarketplace(sandbox, 'search-market', [
       {

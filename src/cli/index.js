@@ -125,21 +125,51 @@ export async function runCli() {
     case 'ls': {
       const installedOnly = args.includes('--installed');
       const jsonOutput = args.includes('--json');
+      const grouped = args.includes('--grouped') || args.includes('--by-marketplace');
       const all = Registry.getAllPlugins();
       const list = installedOnly ? all.filter(p => p.installed) : all;
 
       if (jsonOutput) {
-        console.log(JSON.stringify(list, null, 2));
+        if (grouped) {
+          const mps = {};
+          for (const p of list) {
+            const mp = p.marketplaceName || 'other';
+            if (!mps[mp]) mps[mp] = [];
+            mps[mp].push(p);
+          }
+          console.log(JSON.stringify(mps, null, 2));
+        } else {
+          console.log(JSON.stringify(list, null, 2));
+        }
         break;
       }
 
       console.log(Ansi.bold(Ansi.prism.textPrimary(`Antigravity Plugins & Skills (${list.length})`)));
       console.log(Ansi.prism.textDim(`Configuration directory: ${Paths.geminiConfigPlugins}\n`));
 
-      for (const p of list) {
-        const mark = p.installed ? Ansi.prism.emerald('✓ installed') : Ansi.prism.textDim('○ available');
-        console.log(` ${mark}  ${Ansi.bold(p.name)} ${Ansi.prism.cyan(`v${p.version}`)} ${Ansi.prism.textDim(`[${p.category}]`)} (${p.marketplaceName})`);
-        console.log(`    ${Ansi.prism.textSecondary(p.description)}`);
+      if (grouped) {
+        const mps = {};
+        for (const p of list) {
+          const mp = p.marketplaceName || 'other';
+          if (!mps[mp]) mps[mp] = [];
+          mps[mp].push(p);
+        }
+        for (const [mpName, plugins] of Object.entries(mps)) {
+          const installedCount = plugins.filter(p => p.installed).length;
+          console.log(Ansi.bold(Ansi.prism.cyan(`⛃ ${mpName}`)) + Ansi.prism.textDim(` (${plugins.length} skills, ${installedCount} installed)`));
+          for (const p of plugins) {
+            const mark = p.installed ? Ansi.prism.emerald('✓ installed') : Ansi.prism.textDim('○ available');
+            console.log(`  ${mark}  ${Ansi.bold(p.name)} ${Ansi.prism.cyan(`v${p.version}`)}`);
+            console.log(`     ${Ansi.prism.textSecondary(p.description)}`);
+          }
+          console.log('');
+        }
+      } else {
+        for (const p of list) {
+          const mark = p.installed ? Ansi.prism.emerald('✓ installed') : Ansi.prism.textDim('○ available');
+          console.log(` ${mark}  ${Ansi.bold(p.name)} ${Ansi.prism.cyan(`v${p.version}`)} (${p.marketplaceName})`);
+          console.log(`    ${Ansi.prism.textSecondary(p.description)}`);
+        }
       }
       break;
     }
